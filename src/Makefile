@@ -9,7 +9,9 @@ all: assemble emulate
 
 assemble: assemble.o
 
-emulate: emulate.o definitions.h
+emulate: emulate.o binFileLoader.o
+
+binFileLoader.o: binFileLoader.h
 
 clean:
 	rm -f $(wildcard *.o)

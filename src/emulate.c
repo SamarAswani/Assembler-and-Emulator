@@ -1,6 +1,12 @@
 #include <stdlib.h>
-#include "definitions.h"
+#include "binFileLoader.h"
 
 int main(int argc, char **argv) {
-  return EXIT_SUCCESS;
+    // Testing binFileLoader - create a test.bin file before running.
+    State *test = createCPUState();
+    loadBinFile("test.bin", test);
+    destroyCPUState(test);
+
+
+    return EXIT_SUCCESS;
 }
