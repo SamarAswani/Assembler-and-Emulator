@@ -9,7 +9,7 @@ all: assemble emulate
 
 assemble: assemble.o
 
-emulate: emulate.o
+emulate: emulate.o definitions.h
 
 clean:
 	rm -f $(wildcard *.o)

@@ -2,14 +2,15 @@
 #define DEFINITIONS
 
 #include <stdio.h>
+#include <stdint.h>
 
 #define NUM_REGISTERS 17
 #define MEM_SIZE 65536
 #define WORD_IN_BYTES 4
 
-typedef u_int32_t word;
-typedef u_int8_t byte;
-typedef u_int16_t address;
+typedef uint32_t word;
+typedef uint8_t byte;
+typedef uint16_t address;
 
 typedef struct{
     word registers[NUM_REGISTERS];
