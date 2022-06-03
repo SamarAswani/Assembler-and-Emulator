@@ -1,12 +1,11 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include "emulator/fetch.h"
 #include "emulator/binFileLoader.h"
 
 int main(int argc, char **argv) {
-    // Testing binFileLoader - create a test.bin file before running.
-    State *test = createCPUState();
-    loadBinFile("test.bin", test);
-    destroyCPUState(test);
-
-
-    return EXIT_SUCCESS;
+    // Running this should print "hello world." if everything is okay.
+    State *armState = initARMState("test.bin");
+    printf("%s", armState->memory);
+    destroyARMState(armState);
 }

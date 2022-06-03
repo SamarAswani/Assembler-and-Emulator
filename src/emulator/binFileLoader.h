@@ -7,10 +7,10 @@
 #include "../definitions.h"
 
 // Malloc
-State *createCPUState(void);
+State *createARMState(void);
 // Free
-void destroyCPUState(State *cpuState);
+void destroyARMState(State *armState);
 // Reads a given .bin file into a State struct.
-void loadBinFile(const char *fileName, State *cpuState);
+void loadBinFile(const char *fileName, State *armState);
 
 #endif

@@ -1,7 +1,7 @@
 CC      = gcc
 CFLAGS  = -Wall -g -D_POSIX_SOURCE -D_DEFAULT_SOURCE -std=c99 -Werror -pedantic
 
-EMULATE = emulator/binFileLoader.o
+EMULATE = emulator/binFileLoader.o emulator/fetch.o
 
 .SUFFIXES: .c .o
 
@@ -11,7 +11,7 @@ all: assemble emulate
 
 assemble: assemble.o
 
-emulate: emulate.o ${EMULATE}
+emulate: emulate.o $(EMULATE)
 
 clean:
 	rm -f $(wildcard *.o)

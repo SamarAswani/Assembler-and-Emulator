@@ -1,6 +1,6 @@
 #include "binFileLoader.h"
 
-State *createCPUState(void) {
+State *createARMState(void) {
     State *newState = malloc(sizeof(State));
     if (newState == NULL) {
         perror("Error allocating memory for cpu state.");
@@ -9,17 +9,18 @@ State *createCPUState(void) {
     return newState;
 }
 
-void destroyCPUState(State *cpuState) {
-    free(cpuState);
+void destroyARMState(State *armState) {
+    free(armState);
 }
 
-void loadBinFile(const char *fileName, State *cpuState) {
+void loadBinFile(const char *fileName, State *armState) {
     FILE *file = fopen(fileName, "rb");
 
     if (ferror(file)) {
+        destroyARMState(armState);
         perror("Error reading input file");
         exit(EXIT_FAILURE);
     }
 
-    fread(cpuState->memory, sizeof(byte), MEM_SIZE, file);
+    fread(armState->memory, sizeof(byte), MEM_SIZE, file);
 }

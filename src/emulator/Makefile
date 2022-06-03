@@ -5,5 +5,7 @@ CFLAGS  = -Wall -g -D_POSIX_SOURCE -D_DEFAULT_SOURCE -std=c99 -Werror -pedantic
 
 binFileLoader.o: binFileLoader.h ../definitions.h
 
+fetch.o: binFileLoader.h fetch.h ../definitions.h
+
 clean:
 	rm -f $(wildcard *.o)
