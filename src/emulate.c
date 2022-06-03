@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "binFileLoader.h"
+#include "emulator/binFileLoader.h"
 
 int main(int argc, char **argv) {
     // Testing binFileLoader - create a test.bin file before running.

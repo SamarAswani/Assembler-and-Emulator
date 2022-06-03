@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "definitions.h"
+#include "../definitions.h"
 
 // Malloc
 State *createCPUState(void);
