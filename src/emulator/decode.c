@@ -1,9 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "decode.h"
-#include "instruction.h"
 
-static DataProcessingInstruction *decodeDPI(State state, word instruction) {
+static DataProcessingInstruction *decodeDPI(State *state, word instruction) {
     DataProcessingInstruction *decoded = malloc(sizeof(*decoded));
     decoded->cond = (instruction & COND_MASK) >> COND_SHIFT;
     decoded->i = (instruction & DPI_I) >> DPI_I_SHIFT;
@@ -15,7 +14,7 @@ static DataProcessingInstruction *decodeDPI(State state, word instruction) {
     return decoded;
 }
 
-static MultiplyInstruction *decodeMultiply(State state, word instruction) {
+static MultiplyInstruction *decodeMultiply(State *state, word instruction) {
     MultiplyInstruction *decoded = malloc(sizeof(*decoded));
     decoded->cond = (instruction & COND_MASK) >> COND_SHIFT;
     decoded->a = (instruction & ACC_MASK) >> ACC_SHIFT;
@@ -27,7 +26,7 @@ static MultiplyInstruction *decodeMultiply(State state, word instruction) {
     return decoded;
 }
 
-static SingleDataTransferInstruction *decodeSDTI(State state, word instruction) {
+static SingleDataTransferInstruction *decodeSDTI(State *state, word instruction) {
     SingleDataTransferInstruction *decoded = malloc(sizeof(*decoded));
     decoded->cond = (instruction & COND_MASK) >> COND_SHIFT;
     decoded->i = (instruction & SDTI_I_MASK) >> SDTI_I_SHIFT;
@@ -40,35 +39,35 @@ static SingleDataTransferInstruction *decodeSDTI(State state, word instruction) 
     return decoded;
 }
 
-static BranchInstruction *decodeBranch(State state, word instruction) {
+static BranchInstruction *decodeBranch(State *state, word instruction) {
     BranchInstruction *decoded = malloc(sizeof(*decoded));
     decoded->cond = (instruction & COND_MASK) >> COND_SHIFT;
     decoded->offset = instruction & OFFSET;
     return decoded;
 }
 
-void decode(State state, DecodedInstruction *decoded) {
-    word instruction = state.fetched;
-    state.decoded.instruction = instruction;
-    if (state.fetched == 0) { return; }
+void decode(State *state, DecodedInstruction *decoded) {
+    word instruction = state->fetched;
+    state->decoded.instruction = instruction;
+    if (state->fetched == 0) { return; }
 
     if ((instruction & DPI_MASK) == IS_DPI) {
-        state.decoded.type = DPI;
-        state.decoded.dp = decodeDPI(state, instruction);
+        state->decoded.type = DPI;
+        state->decoded.dp = decodeDPI(state, instruction);
     } 
     
     else if ((instruction & MULT_MASK) == IS_MULT) {
-        state.decoded.type = MULT;
-        state.decoded.multiply = decodeMultiply(state, instruction);
+        state->decoded.type = MULT;
+        state->decoded.multiply = decodeMultiply(state, instruction);
     } 
     
     else if ((instruction & SDT_MASK) == IS_SDT) {
-        state.decoded.type = SDTI;
-        state.decoded.sdt = decodeSDTI(state, instruction);
+        state->decoded.type = SDTI;
+        state->decoded.sdt = decodeSDTI(state, instruction);
     } 
     
     else if ((instruction & BRANCH_MASK) == IS_BRANCH) {
-        state.decoded.type = BR;
-        state.decoded.branch = decodeBranch(state, instruction);
+        state->decoded.type = BR;
+        state->decoded.branch = decodeBranch(state, instruction);
     }
 }
