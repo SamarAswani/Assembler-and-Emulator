@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include "emulator/decode.h"
 
 #define NUM_REGISTERS 17
 #define MEM_SIZE 65536
@@ -12,21 +13,21 @@ typedef uint32_t word;
 typedef uint8_t byte;
 typedef uint16_t address;
 
-typedef struct{
+typedef struct State {
     word registers[NUM_REGISTERS];
     byte memory[MEM_SIZE];
     word fetched;
-    // decoded instruction
+    DecodedInstruction decoded;
 } State;
 
-typedef enum { 
+typedef enum Register { 
     SP = 13,
     LR = 14, 
     PC = 15, 
     CPSR = 16
 } Register;
 
-typedef enum {
+typedef enum Opcode {
     AND = 0,
     EOR = 1,
     SUB = 2,
@@ -39,7 +40,7 @@ typedef enum {
     MOV = 13
 } Opcode;
 
-typedef enum {
+typedef enum Cond {
     EQ = 0,
     NE = 1,
     GE = 10,
@@ -49,24 +50,24 @@ typedef enum {
     AL = 14
 } Cond;
 
-typedef enum {
+typedef enum Shift {
     LSL = 0,
     LSR = 1,
     ASR = 2,
     ROR = 3
 } Shift;
 
-typedef enum { 
+typedef enum OpcodeMultiply { 
     MUL, 
     MLA 
 } OpcodeMultiply;
 
-typedef enum { 
+typedef enum OpcodeSDT { 
     LDR, 
     STR 
 } OpcodeSDT;
 
-typedef enum { 
+typedef enum OpcodeBranch { 
     BEQ, 
     BNE, 
     BGE, 
