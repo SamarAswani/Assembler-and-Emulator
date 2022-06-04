@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "emulator/fetch.h"
 #include "emulator/binFileLoader.h"
+#include "emulator/decode.h"
 
 int main(int argc, char **argv) {
     // Running this should print "hello world." if everything is okay.
