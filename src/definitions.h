@@ -7,6 +7,7 @@
 #define NUM_REGISTERS 17
 #define MEM_SIZE 65536
 #define WORD_IN_BYTES 4
+#define BYTE 8
 
 typedef uint32_t word;
 typedef uint8_t byte;
