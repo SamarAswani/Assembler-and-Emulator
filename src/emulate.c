@@ -5,9 +5,8 @@
 #include "emulator/decode.h"
 
 int main(int argc, char **argv) {
-    State *armState = initARMState("test.bin");
+    State *armState = initARMState("tst02");
     fetch(armState);
-    printf("%s", armState->memory);
     DecodedInstruction *decoded = malloc(sizeof(*decoded));
     printf("%x\n", armState->fetched);
     decode(armState, decoded);
