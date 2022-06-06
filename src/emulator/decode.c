@@ -46,7 +46,7 @@ static BranchInstruction *decodeBranch(State *state, word instruction) {
     return decoded;
 }
 
-void decode(State *state, DecodedInstruction *decoded) {
+void decode(State *state) {
     word instruction = state->fetched;
     state->decoded.instruction = instruction;
     if (state->fetched == 0) { return; }
