@@ -9,6 +9,6 @@ int main(int argc, char **argv) {
     fetch(armState);
     DecodedInstruction *decoded = malloc(sizeof(*decoded));
     printf("%x\n", armState->fetched);
-    decode(armState, decoded);
+    decode(armState);
     destroyARMState(armState);
 }

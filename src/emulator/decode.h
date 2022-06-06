@@ -7,6 +7,6 @@
 #include "../definitions.h"
 #include "instruction.h"
 
-extern void decode(State *state, DecodedInstruction *decoded);
+extern void decode(State *state);
 
 #endif
