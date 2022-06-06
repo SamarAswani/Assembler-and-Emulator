@@ -98,10 +98,10 @@ typedef struct MultiplyInstruction {
     word cond;
     unsigned int a;
     unsigned int s;
-    unsigned int rd;
-    unsigned int rn;
-    unsigned int rs;
-    unsigned int rm;
+    int rd;
+    int rn;
+    int rs;
+    int rm;
 } MultiplyInstruction;
 
 typedef struct SingleDataTransferInstruction {
@@ -117,7 +117,7 @@ typedef struct SingleDataTransferInstruction {
 
 typedef struct BranchInstruction {
     word cond;
-    unsigned int offset;
+    int offset;
 } BranchInstruction;
 
 typedef union DecodedInstruction {
