@@ -84,6 +84,7 @@ static void executeMultiply(State *state, MultiplyInstruction *decoded) {
 }
 
 static void executeSDTI(State *state, SingleDataTransferInstruction *decoded) {
+    ShiftInstruction *shift;
     if(decoded->i) {
         word rmValue = state->registers[decoded->offset & OFFSET_RM_MASK];
         unsigned int shiftBy = decoded->offset >> SHIFT;
@@ -96,6 +97,19 @@ static void executeSDTI(State *state, SingleDataTransferInstruction *decoded) {
         shift->result = rotateRight(imm, rotate);
         shift->carry = rotateRightCarry(imm, rotate);
     }
+
+    word *rn = state->registers + decoded->rn;
+    if (decoded->u) {
+        *rn += shift->result;
+    }
+    else {
+        *rn -= shift->result;
+    }
+    if (decoded->p) {
+        //store and load instructions to be implemented
+    }
+    free(shift);
+    free(decoded);
 }
 
 static void executeBranch(State *state, BranchInstruction *decoded) {
