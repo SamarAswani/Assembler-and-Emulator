@@ -6,14 +6,6 @@
 #define C_SHIFT 29
 #define V_SHIFT 28
 
-#define N(cpsr) ((cpsr & N_MASK) >> CPSR_N_SHIFT)
-#define Z(cpsr) ((cpsr & CPSR_Z_MASK) >> CPSR_Z_SHIFT)
-#define C(cpsr) ((cpsr & CPSR_C_MASK) >> CPSR_C_SHIFT)
-#define V(cpsr) ((cpsr & CPSR_V_MASK) >> CPSR_V_SHIFT)
-
-#define GET_CPSR_FLAGS(cpsr) (cpsr >> COND_SHIFT)
-#define UPDATE_CPSR(instruction) (instruction & INSTRUCTION_S_MASK)
-
 #define DPI_MASK 0x0C000000
 #define IS_DPI 0x00000000
 #define MULT_MASK 0x0FC000F0
