@@ -53,6 +53,20 @@ static bool conditions(State *state, word instruction) {
     }
 }
 
+static word rotateRight(word imm, unsigned int rotate) {
+  return (imm >> rotate) | (imm << (WORD_IN_BITS-rotate));
+}
+
+static unsigned int rotateRightCarry(word imm, unsigned int rotate) {
+  if (rotate == 0) {
+    return 0;
+  }
+  return (imm >> (rotate - 1)) & CARRY_MASK;
+}
+
+static ShiftInstruction *shifter(State *state, word val, unsigned int shift) {
+}
+
 static void executeDPI(State *state, DataProcessingInstruction *decoded) {
 }
 
@@ -70,6 +84,18 @@ static void executeMultiply(State *state, MultiplyInstruction *decoded) {
 }
 
 static void executeSDTI(State *state, SingleDataTransferInstruction *decoded) {
+    if(decoded->i) {
+        word rmValue = state->registers[decoded->offset & OFFSET_RM_MASK];
+        unsigned int shiftBy = decoded->offset >> SHIFT;
+        ShiftInstruction *shift = shifter(state, rmValue, shiftBy);
+    }
+    else {
+        word imm = decoded->offset & OFFSET_IMMEDIATE_MASK;
+        unsigned int rotate = ((decoded->offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
+        ShiftInstruction *shift = malloc(sizeof(*shift));
+        shift->result = rotateRight(imm, rotate);
+        shift->carry = rotateRightCarry(imm, rotate);
+    }
 }
 
 static void executeBranch(State *state, BranchInstruction *decoded) {
