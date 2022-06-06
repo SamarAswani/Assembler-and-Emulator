@@ -53,25 +53,21 @@ void decode(State *state) {
 
     if ((instruction & DPI_MASK) == IS_DPI) {
         state->decoded.type = DPI;
-        free(state->decoded.dp);
         state->decoded.dp = decodeDPI(state, instruction);
     } 
     
     else if ((instruction & MULT_MASK) == IS_MULT) {
         state->decoded.type = MULT;
-        free(state->decoded.multiply);
         state->decoded.multiply = decodeMultiply(state, instruction);
     } 
     
     else if ((instruction & SDT_MASK) == IS_SDT) {
         state->decoded.type = SDTI;
-        free(state->decoded.sdt);
         state->decoded.sdt = decodeSDTI(state, instruction);
     } 
     
     else if ((instruction & BRANCH_MASK) == IS_BRANCH) {
         state->decoded.type = BR;
-        free(state->decoded.branch);
         state->decoded.branch = decodeBranch(state, instruction);
     }
 }
