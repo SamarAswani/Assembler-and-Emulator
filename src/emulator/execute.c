@@ -67,6 +67,17 @@ static unsigned int rotateRightCarry(word imm, unsigned int rotate) {
 static ShiftInstruction *shifter(State *state, word val, unsigned int shift) {
 }
 
+static void store(State *state, word rd, word rn) {
+    if(rn > MEM_SIZE) {
+        perror("Tried to access memory out of bounds.");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < WORD_IN_BYTES; i++) {
+        state->memory[rn + i] = state->registers[rd] >> BYTE * i;
+    }
+}
+
 static void executeDPI(State *state) {
 }
 

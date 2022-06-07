@@ -84,6 +84,7 @@ typedef struct ShiftInstruction {
 } ShiftInstruction;
 
 typedef struct DataProcessingInstruction {
+    InstructionType type;
     word cond;
     unsigned int i;
     Opcode opcode;
@@ -95,6 +96,7 @@ typedef struct DataProcessingInstruction {
 } DataProcessingInstruction;
 
 typedef struct MultiplyInstruction {
+    InstructionType type;
     word cond;
     unsigned int a;
     unsigned int s;
@@ -105,6 +107,7 @@ typedef struct MultiplyInstruction {
 } MultiplyInstruction;
 
 typedef struct SingleDataTransferInstruction {
+    InstructionType type;
     word cond;
     unsigned int i;
     unsigned int p;
