@@ -4,6 +4,7 @@
 #include "execute.h"
 #include "decode.h"
 #include "fetch.h"
+#include "instruction.h"
 
 void updateCSPR(State *state, word res, unsigned int carry) {
     word n = res & (1 << N_SHIFT);
@@ -144,6 +145,17 @@ static void executeSDTI(State *state) {
 }
 
 static void executeBranch(State *state) {
+    flushPipeline(state);
+    int offset = decoded->offset;
+    int signBit = offset & BRANCH_SIGN_BIT;
+    int pcOffset = ((offset << INSTRUCTION_ADDRESS_TO_MEM_ADDRESS)
+        | (signBit ? NEGATIVE_SIGN_EXTEND : POSITIVE_SIGN_EXTEND));
+    state -> registers[PC] += pcOffset;
+}
+
+static void flushPipeline(State *state) {
+    state->fetched = 0;
+    state->decoded.instruction = 0;
 }
 //HEY QUEEEEEENNNNNNNNNN X
 // <3 
