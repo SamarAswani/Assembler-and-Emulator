@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "execute.h"
 #include "decode.h"
+#include "fetch.h"
 
 void updateCSPR(State *state, word res, unsigned int carry) {
     word n = res & (1 << N_SHIFT);
@@ -54,14 +55,14 @@ static bool conditions(State *state, word instruction) {
 }
 
 static word rotateRight(word imm, unsigned int rotate) {
-  return (imm >> rotate) | (imm << (WORD_IN_BITS-rotate));
+    return (imm >> rotate) | (imm << (WORD_IN_BITS-rotate));
 }
 
 static unsigned int rotateRightCarry(word imm, unsigned int rotate) {
-  if (rotate == 0) {
-    return 0;
-  }
-  return (imm >> (rotate - 1)) & CARRY_MASK;
+    if (rotate == 0) {
+        return 0;
+    }
+    return (imm >> (rotate - 1)) & CARRY_MASK;
 }
 
 static ShiftInstruction *shifter(State *state, word val, unsigned int shift) {
@@ -72,10 +73,13 @@ static void store(State *state, word rd, word rn) {
         perror("Tried to access memory out of bounds.");
         exit(EXIT_FAILURE);
     }
-
-    for (int i = 0; i < WORD_IN_BYTES; i++) {
-        state->memory[rn + i] = state->registers[rd] >> BYTE * i;
+    for (int i = 0; i < WORD_IN_BYTES; i ++) {
+        state->memory[rn + i] = state->registers[rd] >> (i * BYTE);
     }
+}
+
+static void load(State *state, word rd, word rn) {
+    state->registers[rd] = getWord(state, rn);
 }
 
 static void executeDPI(State *state) {
@@ -107,16 +111,34 @@ static void executeSDTI(State *state) {
         shift->result = rotateRight(imm, rotate);
         shift->carry = rotateRightCarry(imm, rotate);
     }
-
     word *rn = state->registers + state->decoded.sdt.rn;
-    if (state->decoded.sdt.u) {
-        *rn += shift->result;
+    if (state->decoded.sdt.p) {
+        if (state->decoded.sdt.u) {
+            *rn += shift->result;
+        }
+        else {
+            *rn -= shift->result;
+        }
+        if(state->decoded.sdt.l) {
+            store(state, state->decoded.sdt.rd, *rn);
+        }
+        else {
+            load(state, state->decoded.sdt.rd, *rn);
+        }
     }
     else {
-        *rn -= shift->result;
-    }
-    if (state->decoded.sdt.p) {
-        //store and load instructions to be implemented
+        if(state->decoded.sdt.l) {
+            store(state, state->decoded.sdt.rd, *rn);
+        }
+        else {
+            load(state, state->decoded.sdt.rd, *rn);
+        }
+        if (state->decoded.sdt.u) {
+            *rn += shift->result;
+        }
+        else {
+            *rn -= shift->result;
+        }
     }
     free(shift);
 }
