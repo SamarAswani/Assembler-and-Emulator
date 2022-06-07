@@ -67,69 +67,69 @@ static unsigned int rotateRightCarry(word imm, unsigned int rotate) {
 static ShiftInstruction *shifter(State *state, word val, unsigned int shift) {
 }
 
-static void executeDPI(State *state, DataProcessingInstruction *decoded) {
+static void executeDPI(State *state) {
 }
 
-static void executeMultiply(State *state, MultiplyInstruction *decoded) {
-    int res = state->registers[decoded->s] * state->registers[decoded->rm];
-    if (decoded->a) {
-        res += state->registers[decoded->rn];
+static void executeMultiply(State *state) {
+    int res = state->registers[state->decoded.multiply.s] * state->registers[state->decoded.multiply.rm];
+    if (state->decoded.multiply.a) {
+        res += state->registers[state->decoded.multiply.rn];
     }
-    if (decoded->s) {
+    if (state->decoded.multiply.s) {
         unsigned int c = (state->registers[CPSR] & (1 << C_SHIFT)) >> C_SHIFT;
         updateCSPR(state, res, c);
     }
-    state->registers[decoded->rd] = res;
-    free(decoded);
+    state->registers[state->decoded.multiply.rd] = res;
 }
 
-static void executeSDTI(State *state, SingleDataTransferInstruction *decoded) {
+static void executeSDTI(State *state) {
     ShiftInstruction *shift;
-    if(decoded->i) {
-        word rmValue = state->registers[decoded->offset & OFFSET_RM_MASK];
-        unsigned int shiftBy = decoded->offset >> SHIFT;
+    if(state->decoded.sdt.i) {
+        word rmValue = state->registers[state->decoded.sdt.offset & OFFSET_RM_MASK];
+        unsigned int shiftBy = state->decoded.sdt.offset >> SHIFT;
         ShiftInstruction *shift = shifter(state, rmValue, shiftBy);
     }
     else {
-        word imm = decoded->offset & OFFSET_IMMEDIATE_MASK;
-        unsigned int rotate = ((decoded->offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
+        word imm = state->decoded.sdt.offset & OFFSET_IMMEDIATE_MASK;
+        unsigned int rotate = ((state->decoded.sdt.offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
         ShiftInstruction *shift = malloc(sizeof(*shift));
         shift->result = rotateRight(imm, rotate);
         shift->carry = rotateRightCarry(imm, rotate);
     }
 
-    word *rn = state->registers + decoded->rn;
-    if (decoded->u) {
+    word *rn = state->registers + state->decoded.sdt.rn;
+    if (state->decoded.sdt.u) {
         *rn += shift->result;
     }
     else {
         *rn -= shift->result;
     }
-    if (decoded->p) {
+    if (state->decoded.sdt.p) {
         //store and load instructions to be implemented
     }
     free(shift);
-    free(decoded);
 }
 
-static void executeBranch(State *state, BranchInstruction *decoded) {
+static void executeBranch(State *state) {
 }
+//HEY QUEEEEEENNNNNNNNNN X
+// <3 
 
-void execute(State *state, DecodedInstruction *decoded) {
+void execute(State *state) {
     word instruction = state->decoded.instruction;
     if (instruction == 0 || !conditions(state, instruction)) { return; }
     switch (state->decoded.type) {
         case DPI:
-            executeDPI(state, decoded->dp);
+            executeDPI(state);
             break;
         case MULT:
-            executeMultiply(state, decoded->multiply);
+            executeMultiply(state);
             break;
         case SDTI:
-            executeSDTI(state, decoded->sdt);
+            executeSDTI(state);
             break;
         case BR:
-            executeBranch(state, decoded->branch);
+            executeBranch(state);
             break;
     default:
         perror("Instruction not supported");

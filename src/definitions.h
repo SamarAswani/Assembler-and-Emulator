@@ -123,10 +123,10 @@ typedef struct BranchInstruction {
 typedef union DecodedInstruction {
     InstructionType type;
     word instruction;
-    DataProcessingInstruction *dp;
-    MultiplyInstruction *multiply;
-    SingleDataTransferInstruction *sdt;
-    BranchInstruction *branch;
+    DataProcessingInstruction dp;
+    MultiplyInstruction multiply;
+    SingleDataTransferInstruction sdt;
+    BranchInstruction branch;
 } DecodedInstruction;
 
 typedef struct State {

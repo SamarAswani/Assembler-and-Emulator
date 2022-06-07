@@ -6,6 +6,6 @@
 #include <stdint.h>
 #include "../definitions.h"
 
-extern void execute(State *state, DecodedInstruction *decoded);
+extern void execute(State *state);
 
 #endif

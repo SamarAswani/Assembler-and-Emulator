@@ -7,8 +7,8 @@
 int main(int argc, char **argv) {
     State *armState = initARMState("tst02");
     fetch(armState);
-    DecodedInstruction *decoded = malloc(sizeof(*decoded));
     printf("%x\n", armState->fetched);
     decode(armState);
+    printf("%x\n", armState->decoded.dp.opcode);
     destroyARMState(armState);
 }
