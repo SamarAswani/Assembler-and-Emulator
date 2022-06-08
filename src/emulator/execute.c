@@ -156,13 +156,14 @@ static void executeBranch(State *state) {
 static void flushPipeline(State *state) {
     state->fetched = 0;
     state->decoded.instruction = 0;
+    state->decoded.isSet = false;
 }
 //HEY QUEEEEEENNNNNNNNNN X
 // <3 
 
 void execute(State *state) {
     word instruction = state->decoded.instruction;
-    if (instruction == 0 || !conditions(state, instruction)) { return; }
+    if (!state->decoded.isSet || !conditions(state, instruction)) { return; }
     switch (state->decoded.type) {
         case DPI:
             executeDPI(state);

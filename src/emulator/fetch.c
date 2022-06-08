@@ -13,6 +13,11 @@ State *initARMState(const char *fileName) {
         newState->registers[i] = 0;
     }
 
+    // Initialise fetched and decoded instructions
+    newState->decoded.isSet = false;
+    newState->decoded.instruction = 0;
+    newState->fetched = 0;
+
     // Loads binary file into memory:
     loadBinFile(fileName, newState);
 

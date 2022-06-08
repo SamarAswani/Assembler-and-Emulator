@@ -10,5 +10,7 @@ int main(int argc, char **argv) {
     printf("%x\n", armState->fetched);
     decode(armState);
     printf("%x\n", armState->decoded.dp.opcode);
+    printf("%x\n", armState->decoded.isSet);
+    printf("%x\n", armState->decoded.instruction);
     destroyARMState(armState);
 }

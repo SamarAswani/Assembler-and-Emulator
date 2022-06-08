@@ -62,4 +62,6 @@ void decode(State *state) {
         state->decoded.type = BR;
         decodeBranch(state, instruction);
     }
+
+    state->decoded.isSet = true;
 }
