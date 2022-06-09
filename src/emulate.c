@@ -9,13 +9,16 @@ void printRegisters(State *state) {
     printf("Registers:\n");
     for (int i = 0; i < NUM_REGISTERS; i++) {
         if (i == PC) {
-            printf("$  PC: %10i (0x%08x)\n", state->registers[i], state->registers[i]);
+            printf("PC  : %10i (0x%08x)\n", state->registers[i], state->registers[i]);
         } 
         else if (i == CPSR) {
-            printf("$CPSR: %10i (0x%08x)\n", state->registers[i], state->registers[i]);
+            printf("CPSR: %10i (0x%08x)\n", state->registers[i], state->registers[i]);
         } 
+        else if (i == SP || i == LR) {
+            continue;
+        }
         else {
-            printf("$%4i: %10i (0x%08x)\n", i, state->registers[i], state->registers[i]);
+            printf("$%-3i: %10i (0x%08x)\n", i, state->registers[i], state->registers[i]);
         }    
     }
     printf("Non-zero memory:\n");
