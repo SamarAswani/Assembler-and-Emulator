@@ -165,7 +165,7 @@ OperationInstruction *registerOperand (State *state, unsigned int operand) {
 
 OperationInstruction *immediateOperand (State *state, unsigned int operand) {
     word imm = (operand & LEAST_BYTE);
-    unsigned int rotate = (operand >> ROTATE_SHIFT) * ROTATION_MULT;
+    unsigned int rotate = ((operand & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * ROTATION_MULT;
     OperationInstruction* resShift = malloc(sizeof(OperationInstruction));
     if (resShift == NULL) {
         perror("null pointer");
@@ -284,7 +284,7 @@ static void executeSDTI(State *state) {
     // }
     // else {
     //     word imm = state->decoded.i.sdt.offset & OFFSET_IMMEDIATE_MASK;
-    //     unsigned int rotate = ((state->decoded.i.sdt.offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
+        // unsigned int rotate = ((state->decoded.i.sdt.offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
     //     shift = malloc(sizeof(*shift));
     //     shift->result = rotateRight(imm, rotate);
     //     shift->carry = rightCarry(imm, rotate);
@@ -296,18 +296,18 @@ static void executeSDTI(State *state) {
     }
     if (state->decoded.i.sdt.p) {
         if(state->decoded.i.sdt.l) {
-            store(state, state->decoded.i.sdt.rd, *rn + offset);
+            load(state, state->decoded.i.sdt.rd, *rn + offset);
         }
         else {
-            load(state, state->decoded.i.sdt.rd, *rn + offset);
+            store(state, state->decoded.i.sdt.rd, *rn + offset);
         }
     }
     else {
         if(state->decoded.i.sdt.l) {
-            store(state, state->decoded.i.sdt.rd, *rn);
+            load(state, state->decoded.i.sdt.rd, *rn);
         }
         else {
-            load(state, state->decoded.i.sdt.rd, *rn);
+            store(state, state->decoded.i.sdt.rd, *rn);
         }
         rn += offset;
     }
