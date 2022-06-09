@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
     // fetch(armState);
     // printf("%x\n", armState->fetched);
     // decode(armState);
-    while ((!armState->decoded.isSet || (armState->decoded.isSet && armState->decoded.instruction == 0)) 
+    while ((!armState->decoded.isSet || (armState->decoded.isSet && !(armState->decoded.instruction == 0))) 
         && armState->registers[PC] < MEM_SIZE) {
         execute(armState);
         decode(armState);
