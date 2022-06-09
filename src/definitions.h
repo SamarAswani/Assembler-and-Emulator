@@ -78,10 +78,10 @@ typedef enum InstructionType {
     SDTI 
 } InstructionType;
 
-typedef struct ShiftInstruction {
+typedef struct {
     word result;
     unsigned int carry;
-} ShiftInstruction;
+} OperationInstruction;
 
 typedef struct DataProcessingInstruction {
     word cond;

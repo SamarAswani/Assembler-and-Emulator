@@ -53,6 +53,14 @@ static bool conditions(State *state, word instruction) {
     }
 }
 
+
+//rotateRight Implementation 2:
+static word rotateRight2(word val, unsigned int rotate) {
+    unsigned int lsbs = val & ((1 << rotate) - 1);
+    return (val >> rotate) | (lsbs << (WORD_SIZE - rotate));
+}
+
+
 static word rotateRight(word imm, unsigned int rotate) {
   return (imm >> rotate) | (imm << (WORD_IN_BITS-rotate));
 }
@@ -64,10 +72,197 @@ static unsigned int rotateRightCarry(word imm, unsigned int rotate) {
   return (imm >> (rotate - 1)) & CARRY_MASK;
 }
 
-static ShiftInstruction *shifter(State *state, word val, unsigned int shift) {
+
+static void store(State *state, word rd, word rn) {
+    if(rn > MEM_SIZE) {
+        perror("Tried to access memory out of bounds.");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < WORD_IN_BYTES; i ++) {
+        state->memory[rn + i] = state->registers[rd] >> (i * BYTE);
+    }
 }
 
-static void executeDPI(State *state, DataProcessingInstruction *decoded) {
+static void load(State *state, word rd, word rn) {
+    state->registers[rd] = getWord(state, rn);
+}
+
+
+static unsigned int leftCarry (word val, unsigned int shiftVal ) {
+    if (shiftVal == 0) {
+        return 0;
+  }
+
+  return (val << (shiftVal - 1)) >> (WORD_SIZE - 1);
+}
+
+static unsigned int rightCarry(word val, unsigned int shiftVal) {
+    if (shiftVal == 0) {
+        return 0;
+    }
+    return (val >> (shiftVal -1)) & LSB;
+}
+
+static word arithmeticShiftRight(word val, unsigned int shiftVal) {
+    word msb = val & MSB;
+    word msbs = msb;
+    for (int i = 0; i < shiftVal; i++ ) {
+        msbs = msbs >> 1;
+        msbs = msbs + msb;
+    }
+    word res = (msbs | (val >> shiftVal));
+    return res;
+}
+
+
+
+//pass in only shift not Rm
+static OperationInstruction *barrelShifter(State *state, word val, unsigned int shift) {
+   unsigned int shiftVal = shift >> DPI_SHIFT_CONSTANT;
+   Shift type = (shift & SHIFT_MASK) >> SHIFT_TYPE;
+   OperationInstruction* resShift = malloc(sizeof(OperationInstruction));
+   if (resShift == NULL) {
+    perror("null pointer");
+    errorExit(MEM_SIZE);
+   }
+   word res;
+   unsigned int carry;
+
+   switch (type) {
+    case ASR:
+        carry = rightCarry(val, shiftVal);
+        res = arithmeticShiftRight(val, shiftVal);  
+        break;
+
+    case LSR:
+        carry = rightCarry(val, shiftVal);
+        res = val >> shiftVal;
+        break;
+
+    case LSL:
+        carry = leftCarry(val, shiftVal);
+        res = val << shiftVal;
+        break;
+    
+    case ROR:
+        // carry = rightCarry(val, shiftVal);
+        carry = rotateRightCarry(val, shiftVal);
+        // res = rotateRight2(val, shiftVal);
+        res = rotateRight(val, shiftVal);
+        break;
+
+    default:
+        errorExit("case error");
+   }
+
+   resShift -> result = res, resShift -> carry = carry;
+   return resShift;
+
+}
+
+OperationInstruction *registerOperand (State *state, unsigned int operand) {
+    unsigned int RM = (operand & RM_MASK);
+    word val = state -> registers[RM];
+    unsigned int shift = operand >> SHIFT;
+    return barrelShifter (state, val, shift);
+
+}
+
+OperationInstruction *immediateOperand (State *state, unsigned int operand) {
+    word imm = (operand & LEAST_BYTE);
+    unsigned int rotate = (operand >> ROTATE_SHIFT) * ROTATION_MULT;
+    OperationInstruction* resShift = malloc(sizeof(OperationInstruction));
+    if (resShift == NULL) {
+        perror("null pointer");
+        errorExit(MEM_SIZE);
+    }
+
+    resShift->result = rotateRight(imm, rotate);
+    resShift->carry = rotateRightCarry(imm, rotate);
+    return resShift;
+}
+
+static word arithmeticCarryOut(word operand1, word operand2, bool add) {
+  if (add) {
+    if (operand1 <= UINT32_MAX - operand2) {
+        return 0;
+    }
+    return 1;
+  }
+
+  if (operand1 < operand2) {
+    return 0;
+  }
+
+  return 1;
+}
+
+static void executeDPI(State *state) {
+    OperationInstruction *opShifted;
+    if (state->decoded.dp.i) {
+        opShifted = immediateOperand(state, state->decoded.dp.op2);
+    }
+    else {
+        opShifted = registerOperand(state, state->decoded.dp.op2);
+    }
+    word operand1 = state->decoded.dp.rn;
+    word operand2 = opShifted->result;
+    unsigned int carry = opShifted->carry;
+    unsigned int rd = state->decoded.dp.rd;
+
+    word res;
+
+    switch (state->decoded.dp.opcode) {
+        case AND:
+            res = operand1 & operand2;
+            state->registers[rd] = res;
+            break; 
+        case EOR:
+            res = operand1 ^ operand2;
+            state->registers[rd] = res;
+            break;
+        case SUB:
+            res = operand1 - operand2;
+            carry = arithmeticCarryOut(operand1, operand2, false);
+            state->registers[rd] = res;
+            break;
+        case RSB:
+            res = operand2 - operand1;
+            carry = arithmeticCarryOut(operand2, operand1, false);
+            state->registers[rd] = res;
+            break;
+        case ADD:
+            res = operand1 + operand2;
+            carry = arithmeticCarryOut(operand1, operand2, true);
+            state->registers[rd] = res;
+            break;
+        case TST:
+            res = operand1 & operand2;
+            break;
+        case TEQ:
+            res = operand1 ^ operand2;
+            break;
+        case CMP:
+            res = operand1 - operand2;
+            carry = arithmeticCarryOut(operand1, operand2, false);
+            break;    
+        case ORR:
+            res = operand1 | operand2;
+            state->registers[rd] = res;
+            break;
+        case MOV:
+            res = operand2;
+            state->registers[rd] = res;
+            break;
+        default:
+            errorExit("case error");    
+    }
+    if (state->decoded.dp.s) {
+        setCPSR(state, res, carry);
+    }
+    free(opShifted);
+    // free(state->decoded);
+     
 }
 
 static void executeMultiply(State *state, MultiplyInstruction *decoded) {
@@ -83,17 +278,17 @@ static void executeMultiply(State *state, MultiplyInstruction *decoded) {
     free(decoded);
 }
 
-static void executeSDTI(State *state, SingleDataTransferInstruction *decoded) {
-    ShiftInstruction *shift;
-    if(decoded->i) {
-        word rmValue = state->registers[decoded->offset & OFFSET_RM_MASK];
-        unsigned int shiftBy = decoded->offset >> SHIFT;
-        ShiftInstruction *shift = shifter(state, rmValue, shiftBy);
+static void executeSDTI(State *state) {
+    OperationInstruction *shift;
+    if(state->decoded.sdt.i) {
+        word rmValue = state->registers[state->decoded.sdt.offset & OFFSET_RM_MASK];
+        unsigned int shiftBy = state->decoded.sdt.offset >> SHIFT;
+        OperationInstruction *shift = shifter(state, rmValue, shiftBy);
     }
     else {
-        word imm = decoded->offset & OFFSET_IMMEDIATE_MASK;
-        unsigned int rotate = ((decoded->offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
-        ShiftInstruction *shift = malloc(sizeof(*shift));
+        word imm = state->decoded.sdt.offset & OFFSET_IMMEDIATE_MASK;
+        unsigned int rotate = ((state->decoded.sdt.offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
+        OperationInstruction *shift = malloc(sizeof(*shift));
         shift->result = rotateRight(imm, rotate);
         shift->carry = rotateRightCarry(imm, rotate);
     }
