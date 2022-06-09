@@ -57,26 +57,19 @@ static bool conditions(State *state, word instruction) {
 
 
 // rotateRight Implementation 2:
-static word rotateRight(word val, unsigned int rotate) {
-    // unsigned int lsbs = val & ((1 << rotate) - 1);
-    // return (val >> rotate) | (lsbs << (WORD_SIZE - rotate));
-    return (val >> rotate) | (val << (WORD_IN_BITS-rotate));
+static word rotateRight(word imm, unsigned int rotate) {
+    unsigned int lsbs = imm & ((1 << rotate) - 1);
+    return (imm >> rotate) | (lsbs << (WORD_IN_BITS - rotate));
+    // return (val >> rotate) | (val << (WORD_IN_BITS-rotate));
 
 }
 
-
-// static word rotateRight(word imm, unsigned int rotate) {
-//     // return (imm >> rotate) | (imm << (WORD_IN_BITS-rotate));
-//     unsigned int lsbs = rotate & ((1 << rotate) - 1);
-//     return (rotate >> rotate) | (lsbs << (WORD_SIZE - rotate));
-// }
-
-// static unsigned int rotateRightCarry(word imm, unsigned int rotate) {
-//     if (rotate == 0) {
-//         return 0;
-//     }
-//     return (imm >> (rotate - 1)) & CARRY_MASK;
-// }
+static unsigned int rotateRightCarry(word imm, unsigned int rotate) {
+    if (rotate == 0) {
+        return 0;
+    }
+    return (imm >> (rotate - 1)) & CARRY_MASK;
+}
 
 
 static void store(State *state, word rd, word rn) {
@@ -102,12 +95,12 @@ static unsigned int leftCarry (word val, unsigned int shiftVal ) {
   return (val << (shiftVal - 1)) >> (WORD_SIZE - 1);
 }
 
-static unsigned int rightCarry(word val, unsigned int shiftVal) {
-    if (shiftVal == 0) {
-        return 0;
-    }
-    return (val >> (shiftVal -1)) & LSB;
-}
+// static unsigned int rightCarry(word val, unsigned int shiftVal) {
+//     if (shiftVal == 0) {
+//         return 0;
+//     }
+//     return (val >> (shiftVal -1)) & LSB;
+// }
 
 static word arithmeticShiftRight(word val, unsigned int shiftVal) {
     word msb = val & MSB;
@@ -120,9 +113,6 @@ static word arithmeticShiftRight(word val, unsigned int shiftVal) {
     return res;
 }
 
-
-
-//pass in only shift not Rm
 static OperationInstruction *barrelShifter(State *state, word val, unsigned int shift) {
    unsigned int shiftVal = shift >> DPI_SHIFT_CONSTANT;
    Shift type = (shift & SHIFT_MASK) >> SHIFT_TYPE;
@@ -136,12 +126,12 @@ static OperationInstruction *barrelShifter(State *state, word val, unsigned int 
 
    switch (type) {
     case ASR:
-        carry = rightCarry(val, shiftVal);
+        carry = rotateRightCarry(val, shiftVal);
         res = arithmeticShiftRight(val, shiftVal);  
         break;
 
     case LSR:
-        carry = rightCarry(val, shiftVal);
+        carry = rotateRightCarry(val, shiftVal);
         res = val >> shiftVal;
         break;
 
@@ -152,7 +142,7 @@ static OperationInstruction *barrelShifter(State *state, word val, unsigned int 
     
     case ROR:
         // carry = rightCarry(val, shiftVal);
-        carry = rightCarry(val, shiftVal);
+        carry = rotateRightCarry(val, shiftVal);
         // res = rotateRight2(val, shiftVal);
         res = rotateRight(val, shiftVal);
         break;
@@ -168,10 +158,8 @@ static OperationInstruction *barrelShifter(State *state, word val, unsigned int 
 }
 
 OperationInstruction *registerOperand (State *state, unsigned int operand) {
-    unsigned int RM = (operand & RM_MASK);
-    word val = state -> registers[RM];
-    unsigned int shift = operand >> SHIFT;
-    return barrelShifter (state, val, shift);
+    word val = state->registers[operand & OFFSET_RM_MASK];
+    return barrelShifter(state, val, operand >> SHIFT);
 
 }
 
@@ -185,7 +173,7 @@ OperationInstruction *immediateOperand (State *state, unsigned int operand) {
     }
 
     resShift->result = rotateRight(imm, rotate);
-    resShift->carry = rightCarry(imm, rotate);
+    resShift->carry = rotateRightCarry(imm, rotate);
     return resShift;
 }
 
@@ -286,47 +274,42 @@ static void executeMultiply(State *state) {
 }
 
 static void executeSDTI(State *state) {
-    OperationInstruction *shift;
-    if(state->decoded.i.sdt.i) {
-        word rmValue = state->registers[state->decoded.i.sdt.offset & OFFSET_RM_MASK];
-        unsigned int shiftBy = state->decoded.i.sdt.offset >> SHIFT;
-        shift = barrelShifter(state, rmValue, shiftBy);
+    OperationInstruction *shift = state->decoded.i.sdt.i 
+    ? registerOperand(state, state->decoded.i.sdt.offset) 
+    : immediateOperand(state, state->decoded.i.sdt.offset);
+    // if(state->decoded.i.sdt.i) {
+    //     word rmValue = state->registers[state->decoded.i.sdt.offset & OFFSET_RM_MASK];
+    //     unsigned int shiftBy = state->decoded.i.sdt.offset >> SHIFT;
+    //     shift = barrelShifter(state, rmValue, shiftBy);
+    // }
+    // else {
+    //     word imm = state->decoded.i.sdt.offset & OFFSET_IMMEDIATE_MASK;
+    //     unsigned int rotate = ((state->decoded.i.sdt.offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
+    //     shift = malloc(sizeof(*shift));
+    //     shift->result = rotateRight(imm, rotate);
+    //     shift->carry = rightCarry(imm, rotate);
+    // }
+    word *rn = state->registers + state->decoded.i.sdt.rn;
+    word offset = shift->result;
+    if (!state->decoded.i.sdt.u) {
+        offset = -offset;
     }
-    else {
-        word imm = state->decoded.i.sdt.offset & OFFSET_IMMEDIATE_MASK;
-        unsigned int rotate = ((state->decoded.i.sdt.offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
-        shift = malloc(sizeof(*shift));
-        shift->result = rotateRight(imm, rotate);
-        shift->carry = rightCarry(imm, rotate);
-    }
-    word rn = state->decoded.i.sdt.rn;
     if (state->decoded.i.sdt.p) {
-        if (state->decoded.i.sdt.u) {
-            rn += shift->result;
-        }
-        else {
-            rn -= shift->result;
-        }
         if(state->decoded.i.sdt.l) {
-            store(state, state->decoded.i.sdt.rd, rn);
+            store(state, state->decoded.i.sdt.rd, *rn + offset);
         }
         else {
-            load(state, state->decoded.i.sdt.rd, rn);
+            load(state, state->decoded.i.sdt.rd, *rn + offset);
         }
     }
     else {
         if(state->decoded.i.sdt.l) {
-            store(state, state->decoded.i.sdt.rd, rn);
+            store(state, state->decoded.i.sdt.rd, *rn);
         }
         else {
-            load(state, state->decoded.i.sdt.rd, rn);
+            load(state, state->decoded.i.sdt.rd, *rn);
         }
-        if (state->decoded.i.sdt.u) {
-            rn += shift->result;
-        }
-        else {
-            rn -= shift->result;
-        }
+        rn += offset;
     }
     free(shift);
 }
