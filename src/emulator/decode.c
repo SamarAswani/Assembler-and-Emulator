@@ -18,8 +18,8 @@ static void decodeMultiply(State *state, word instruction) {
     state->decoded.i.multiply.a = (instruction & ACC_MASK) >> ACC_SHIFT;
     state->decoded.i.multiply.s = (instruction & CSPR_MASK) >> CSPR_SHIFT;
     state->decoded.i.multiply.rd = (instruction & RD_MASK) >> RD_SHIFT;
-    state->decoded.i.multiply.rs = (instruction & RN_MASK) >> RN_SHIFT;
-    state->decoded.i.multiply.rn = (instruction & RS_MASK) >> RS_SHIFT;
+    state->decoded.i.multiply.rs = (instruction & RS_MASK) >> RS_SHIFT;
+    state->decoded.i.multiply.rn = (instruction & RN_MASK) >> RN_SHIFT;
     state->decoded.i.multiply.rm = instruction & RM_MASK;
 }
 
