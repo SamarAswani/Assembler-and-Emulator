@@ -230,9 +230,6 @@ static void executeDPI(State *state) {
             break;
         case SUB:
             res = operand1 - operand2;
-            printf("Op1: %d\n", operand1);
-            printf("Op2: %d\n", operand2);
-            // printf("%d", res);
             carry = arithmeticCarryOut(operand1, operand2, false);
             state->registers[rd] = res;
             break;
