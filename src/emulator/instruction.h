@@ -71,7 +71,6 @@
 #define CARRY_MASK 1
 #define LSB 0x1
 #define MSB (1 << 31)
-#define RM_MASK 0xF
 #define LEAST_BYTE 0xFF
 
 // Used in executeBranch()

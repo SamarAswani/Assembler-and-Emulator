@@ -30,7 +30,7 @@ void updateCPSR(State *state, word res, unsigned int carry) {
 static bool conditions(State *state, word instruction) {
     unsigned int n = (state->registers[CPSR] & (1 << N_SHIFT)) >> N_SHIFT;
     unsigned int z = (state->registers[CPSR] & (1 << Z_SHIFT)) >> Z_SHIFT;
-    unsigned int c = (state->registers[CPSR] & (1 << C_SHIFT)) >> C_SHIFT;
+    // unsigned int c = (state->registers[CPSR] & (1 << C_SHIFT)) >> C_SHIFT;
     unsigned int v = (state->registers[CPSR] & (1 << V_SHIFT)) >> V_SHIFT;
     Cond cond = instruction >> COND_SHIFT;
     switch (cond) {
@@ -57,10 +57,10 @@ static bool conditions(State *state, word instruction) {
 
 
 //rotateRight Implementation 2:
-static word rotateRight2(word val, unsigned int rotate) {
-    unsigned int lsbs = val & ((1 << rotate) - 1);
-    return (val >> rotate) | (lsbs << (WORD_SIZE - rotate));
-}
+// static word rotateRight2(word val, unsigned int rotate) {
+//     unsigned int lsbs = val & ((1 << rotate) - 1);
+//     return (val >> rotate) | (lsbs << (WORD_SIZE - rotate));
+// }
 
 
 static word rotateRight(word imm, unsigned int rotate) {
@@ -286,12 +286,12 @@ static void executeSDTI(State *state) {
     if(state->decoded.i.sdt.i) {
         word rmValue = state->registers[state->decoded.i.sdt.offset & OFFSET_RM_MASK];
         unsigned int shiftBy = state->decoded.i.sdt.offset >> SHIFT;
-        OperationInstruction *shift = barrelShifter(state, rmValue, shiftBy);
+        shift = barrelShifter(state, rmValue, shiftBy);
     }
     else {
         word imm = state->decoded.i.sdt.offset & OFFSET_IMMEDIATE_MASK;
         unsigned int rotate = ((state->decoded.i.sdt.offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
-        OperationInstruction *shift = malloc(sizeof(*shift));
+        shift = malloc(sizeof(*shift));
         shift->result = rotateRight(imm, rotate);
         shift->carry = rotateRightCarry(imm, rotate);
     }
@@ -337,9 +337,8 @@ static void executeBranch(State *state) {
     flushPipeline(state);
     int offset = state->decoded.i.branch.offset;
     int signBit = offset & BRANCH_SIGN_BIT;
-    int pcOffset = ((offset << INSTRUCTION_ADDRESS_TO_MEM_ADDRESS)
-        | (signBit ? NEGATIVE_SIGN_EXTEND : POSITIVE_SIGN_EXTEND));
-    state -> registers[PC] += pcOffset;
+    int pcOffset = ((offset << INSTRUCTION_ADDRESS_TO_MEM_ADDRESS) | (signBit ? NEGATIVE_SIGN_EXTEND : POSITIVE_SIGN_EXTEND));
+    state->registers[PC] += pcOffset;
 }
 
 void execute(State *state) {

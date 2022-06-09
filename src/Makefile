@@ -1,7 +1,7 @@
 CC      = gcc
 CFLAGS  = -Wall -g -D_POSIX_SOURCE -D_DEFAULT_SOURCE -std=c99 -Werror -pedantic
 
-EMULATE = emulator/binFileLoader.o emulator/fetch.o emulator/decode.o
+EMULATE = emulator/binFileLoader.o emulator/fetch.o emulator/decode.o emulator/execute.o
 
 .SUFFIXES: .c .o
 
