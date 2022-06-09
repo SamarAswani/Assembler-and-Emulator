@@ -93,6 +93,7 @@ typedef struct DataProcessingInstruction {
     unsigned int rn;
     unsigned int rd;
     word rotate_shift;
+    word op1;
     word op2;
 } DataProcessingInstruction;
 

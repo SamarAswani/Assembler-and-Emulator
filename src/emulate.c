@@ -29,7 +29,7 @@ void printRegisters(State *state) {
 }
 
 int main(int argc, char **argv) {
-    State *armState = initARMState("tst02");
+    State *armState = initARMState("factorial");
     while (!armState->decoded.isSet || (armState->decoded.isSet && armState->decoded.instruction)) {
         execute(armState);
         decode(armState);

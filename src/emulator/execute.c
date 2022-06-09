@@ -56,23 +56,27 @@ static bool conditions(State *state, word instruction) {
 }
 
 
-//rotateRight Implementation 2:
-// static word rotateRight2(word val, unsigned int rotate) {
-//     unsigned int lsbs = val & ((1 << rotate) - 1);
-//     return (val >> rotate) | (lsbs << (WORD_SIZE - rotate));
+// rotateRight Implementation 2:
+static word rotateRight(word val, unsigned int rotate) {
+    // unsigned int lsbs = val & ((1 << rotate) - 1);
+    // return (val >> rotate) | (lsbs << (WORD_SIZE - rotate));
+    return (val >> rotate) | (val << (WORD_IN_BITS-rotate));
+
+}
+
+
+// static word rotateRight(word imm, unsigned int rotate) {
+//     // return (imm >> rotate) | (imm << (WORD_IN_BITS-rotate));
+//     unsigned int lsbs = rotate & ((1 << rotate) - 1);
+//     return (rotate >> rotate) | (lsbs << (WORD_SIZE - rotate));
 // }
 
-
-static word rotateRight(word imm, unsigned int rotate) {
-    return (imm >> rotate) | (imm << (WORD_IN_BITS-rotate));
-}
-
-static unsigned int rotateRightCarry(word imm, unsigned int rotate) {
-    if (rotate == 0) {
-        return 0;
-    }
-    return (imm >> (rotate - 1)) & CARRY_MASK;
-}
+// static unsigned int rotateRightCarry(word imm, unsigned int rotate) {
+//     if (rotate == 0) {
+//         return 0;
+//     }
+//     return (imm >> (rotate - 1)) & CARRY_MASK;
+// }
 
 
 static void store(State *state, word rd, word rn) {
@@ -148,7 +152,7 @@ static OperationInstruction *barrelShifter(State *state, word val, unsigned int 
     
     case ROR:
         // carry = rightCarry(val, shiftVal);
-        carry = rotateRightCarry(val, shiftVal);
+        carry = rightCarry(val, shiftVal);
         // res = rotateRight2(val, shiftVal);
         res = rotateRight(val, shiftVal);
         break;
@@ -181,23 +185,23 @@ OperationInstruction *immediateOperand (State *state, unsigned int operand) {
     }
 
     resShift->result = rotateRight(imm, rotate);
-    resShift->carry = rotateRightCarry(imm, rotate);
+    resShift->carry = rightCarry(imm, rotate);
     return resShift;
 }
 
 static word arithmeticCarryOut(word operand1, word operand2, bool add) {
-  if (add) {
-    if (operand1 <= UINT32_MAX - operand2) {
+    if (add) {
+        if (operand1 <= UINT32_MAX - operand2) {
+            return 0;
+        }
+        return 1;
+    }
+
+    if (operand1 < operand2) {
         return 0;
     }
+
     return 1;
-  }
-
-  if (operand1 < operand2) {
-    return 0;
-  }
-
-  return 1;
 }
 
 static void executeDPI(State *state) {
@@ -208,7 +212,7 @@ static void executeDPI(State *state) {
     else {
         opShifted = registerOperand(state, state->decoded.i.dp.op2);
     }
-    word operand1 = state->decoded.i.dp.rn;
+    word operand1 = state->decoded.i.dp.op1;
     word operand2 = opShifted->result;
     unsigned int carry = opShifted->carry;
     unsigned int rd = state->decoded.i.dp.rd;
@@ -226,6 +230,9 @@ static void executeDPI(State *state) {
             break;
         case SUB:
             res = operand1 - operand2;
+            printf("Op1: %d\n", operand1);
+            printf("Op2: %d\n", operand2);
+            // printf("%d", res);
             carry = arithmeticCarryOut(operand1, operand2, false);
             state->registers[rd] = res;
             break;
@@ -293,7 +300,7 @@ static void executeSDTI(State *state) {
         unsigned int rotate = ((state->decoded.i.sdt.offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
         shift = malloc(sizeof(*shift));
         shift->result = rotateRight(imm, rotate);
-        shift->carry = rotateRightCarry(imm, rotate);
+        shift->carry = rightCarry(imm, rotate);
     }
     word *rn = state->registers + state->decoded.i.sdt.rn;
     if (state->decoded.i.sdt.p) {

@@ -9,6 +9,7 @@ static void decodeDPI(State *state, word instruction) {
     state->decoded.i.dp.s = (instruction & CSPR_MASK) >> CSPR_SHIFT;
     state->decoded.i.dp.rn = (instruction & DPI_RN) >> DPI_RN_SHIFT;
     state->decoded.i.dp.rd = (instruction & DPI_RD) >> DPI_RD_SHIFT;
+    state->decoded.i.dp.op1 = state->registers[state->decoded.i.dp.rn];
     state->decoded.i.dp.op2 = instruction & DPI_OP2;
 }
 
