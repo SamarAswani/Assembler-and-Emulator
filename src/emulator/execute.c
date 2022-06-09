@@ -323,11 +323,14 @@ static void executeBranch(State *state) {
 void execute(State *state) {
     word instruction = state->decoded.instruction;
     if (!state->decoded.isSet || !conditions(state, instruction)) { return; }
+    printf("%x\n", instruction);
     switch (state->decoded.type) {
         case DPI:
+            printf("dpi\n");
             executeDPI(state);
             break;
         case MULT:
+            printf("mult\n");
             executeMultiply(state);
             break;
         case SDTI:

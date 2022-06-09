@@ -43,26 +43,26 @@ void decode(State *state) {
     word instruction = state->fetched;
     state->decoded.instruction = instruction;
     if (state->fetched == 0) { return; }
+    
+    if ((instruction & BRANCH_MASK) == IS_BRANCH) {
+        state->decoded.type = BR;
+        decodeBranch(state, instruction);
+    }
 
-    if ((instruction & DPI_MASK) == IS_DPI) {
-        state->decoded.type = DPI;
-        decodeDPI(state, instruction);
-    } 
-    
-    else if ((instruction & MULT_MASK) == IS_MULT) {
-        state->decoded.type = MULT;
-        decodeMultiply(state, instruction);
-    } 
-    
     else if ((instruction & SDT_MASK) == IS_SDT) {
         state->decoded.type = SDTI;
         decodeSDTI(state, instruction);
     } 
-    
-    else if ((instruction & BRANCH_MASK) == IS_BRANCH) {
-        state->decoded.type = BR;
-        decodeBranch(state, instruction);
-    }
+
+    else if ((instruction & MULT_MASK) == IS_MULT) {
+        state->decoded.type = MULT;
+        decodeMultiply(state, instruction);
+    } 
+
+    else if ((instruction & DPI_MASK) == IS_DPI) {
+        state->decoded.type = DPI;
+        decodeDPI(state, instruction);
+    } 
 
     state->decoded.isSet = true;
 }
