@@ -1,10 +1,13 @@
 #ifndef INSTUCTION
 #define INSTUCTION
 
+#define WORD_SIZE 32
+
 #define N_SHIFT 31
 #define Z_SHIFT 30
 #define C_SHIFT 29
 #define V_SHIFT 28
+
 
 #define DPI_MASK 0x0C000000
 #define IS_DPI 0x00000000
@@ -58,10 +61,17 @@
 
 #define OFFSET 0x00FFFFFF
 #define SHIFT 4
+#define SHIFT_TYPE 1
+#define DPI_SHIFT_CONSTANT 3
+#define SHIFT_MASK 0x06
 #define OFFSET_RM_MASK 0x0000000F
 #define OFFSET_IMMEDIATE_MASK 0x000000FF
 #define OFFSET_ROTATE_MASK 0x00000F00
 #define ROTATE_SHIFT 8
 #define CARRY_MASK 1
+#define LSB 0x1
+#define MSB (1 << 31)
+#define RM_MASK 0xF
+#define LEAST_BYTE 0xFF
 
 #endif
