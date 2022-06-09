@@ -74,4 +74,10 @@
 #define RM_MASK 0xF
 #define LEAST_BYTE 0xFF
 
+// Used in executeBranch()
+#define BRANCH_SIGN_BIT (1<<23)
+#define NEGATIVE_SIGN_EXTEND 0xFC000000
+#define POSITIVE_SIGN_EXTEND 0
+#define INSTRUCTION_ADDRESS_TO_MEM_ADDRESS 2
+
 #endif

@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define NUM_REGISTERS 17
 #define MEM_SIZE 65536
@@ -123,13 +124,16 @@ typedef struct BranchInstruction {
     int offset;
 } BranchInstruction;
 
-typedef union DecodedInstruction {
+typedef struct DecodedInstruction {
+    bool isSet;
     InstructionType type;
     word instruction;
-    DataProcessingInstruction dp;
-    MultiplyInstruction multiply;
-    SingleDataTransferInstruction sdt;
-    BranchInstruction branch;
+    union {
+        DataProcessingInstruction dp;
+        MultiplyInstruction multiply;
+        SingleDataTransferInstruction sdt;
+        BranchInstruction branch;
+    } i;
 } DecodedInstruction;
 
 typedef struct State {

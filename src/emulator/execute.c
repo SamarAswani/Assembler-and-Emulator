@@ -4,6 +4,7 @@
 #include "execute.h"
 #include "decode.h"
 #include "fetch.h"
+#include "instruction.h"
 
 void updateCSPR(State *state, word res, unsigned int carry) {
     word n = res & (1 << N_SHIFT);
@@ -215,20 +216,20 @@ static word arithmeticCarryOut(word operand1, word operand2, bool add) {
 
 static void executeDPI(State *state) {
     OperationInstruction *opShifted;
-    if (state->decoded.dp.i) {
-        opShifted = immediateOperand(state, state->decoded.dp.op2);
+    if (state->decoded.i.dp.i) {
+        opShifted = immediateOperand(state, state->decoded.i.dp.op2);
     }
     else {
-        opShifted = registerOperand(state, state->decoded.dp.op2);
+        opShifted = registerOperand(state, state->decoded.i.dp.op2);
     }
-    word operand1 = state->decoded.dp.rn;
+    word operand1 = state->decoded.i.dp.rn;
     word operand2 = opShifted->result;
     unsigned int carry = opShifted->carry;
-    unsigned int rd = state->decoded.dp.rd;
+    unsigned int rd = state->decoded.i.dp.rd;
 
     word res;
 
-    switch (state->decoded.dp.opcode) {
+    switch (state->decoded.i.dp.opcode) {
         case AND:
             res = operand1 & operand2;
             state->registers[rd] = res;
@@ -273,7 +274,7 @@ static void executeDPI(State *state) {
         default:
             errorExit("case error");    
     }
-    if (state->decoded.dp.s) {
+    if (state->decoded.i.dp.s) {
         setCPSR(state, res, carry);
     }
     free(opShifted);
@@ -282,54 +283,54 @@ static void executeDPI(State *state) {
 }
 
 static void executeMultiply(State *state) {
-    int res = state->registers[state->decoded.multiply.s] * state->registers[state->decoded.multiply.rm];
-    if (state->decoded.multiply.a) {
-        res += state->registers[state->decoded.multiply.rn];
+    int res = state->registers[state->decoded.i.multiply.s] * state->registers[state->decoded.i.multiply.rm];
+    if (state->decoded.i.multiply.a) {
+        res += state->registers[state->decoded.i.multiply.rn];
     }
-    if (state->decoded.multiply.s) {
+    if (state->decoded.i.multiply.s) {
         unsigned int c = (state->registers[CPSR] & (1 << C_SHIFT)) >> C_SHIFT;
         updateCSPR(state, res, c);
     }
-    state->registers[state->decoded.multiply.rd] = res;
+    state->registers[state->decoded.i.multiply.rd] = res;
 }
 
 static void executeSDTI(State *state) {
     OperationInstruction *shift;
-    if(state->decoded.sdt.i) {
-        word rmValue = state->registers[state->decoded.sdt.offset & OFFSET_RM_MASK];
-        unsigned int shiftBy = state->decoded.sdt.offset >> SHIFT;
+    if(state->decoded.i.sdt.i) {
+        word rmValue = state->registers[state->decoded.i.sdt.offset & OFFSET_RM_MASK];
+        unsigned int shiftBy = state->decoded.i.sdt.offset >> SHIFT;
         OperationInstruction *shift = shifter(state, rmValue, shiftBy);
     }
     else {
-        word imm = state->decoded.sdt.offset & OFFSET_IMMEDIATE_MASK;
-        unsigned int rotate = ((state->decoded.sdt.offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
+        word imm = state->decoded.i.sdt.offset & OFFSET_IMMEDIATE_MASK;
+        unsigned int rotate = ((state->decoded.i.sdt.offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
         OperationInstruction *shift = malloc(sizeof(*shift));
         shift->result = rotateRight(imm, rotate);
         shift->carry = rotateRightCarry(imm, rotate);
     }
-    word *rn = state->registers + state->decoded.sdt.rn;
-    if (state->decoded.sdt.p) {
-        if (state->decoded.sdt.u) {
+    word *rn = state->registers + state->decoded.i.sdt.rn;
+    if (state->decoded.i.sdt.p) {
+        if (state->decoded.i.sdt.u) {
             *rn += shift->result;
         }
         else {
             *rn -= shift->result;
         }
-        if(state->decoded.sdt.l) {
-            store(state, state->decoded.sdt.rd, *rn);
+        if(state->decoded.i.sdt.l) {
+            store(state, state->decoded.i.sdt.rd, *rn);
         }
         else {
-            load(state, state->decoded.sdt.rd, *rn);
+            load(state, state->decoded.i.sdt.rd, *rn);
         }
     }
     else {
-        if(state->decoded.sdt.l) {
-            store(state, state->decoded.sdt.rd, *rn);
+        if(state->decoded.i.sdt.l) {
+            store(state, state->decoded.i.sdt.rd, *rn);
         }
         else {
-            load(state, state->decoded.sdt.rd, *rn);
+            load(state, state->decoded.i.sdt.rd, *rn);
         }
-        if (state->decoded.sdt.u) {
+        if (state->decoded.i.sdt.u) {
             *rn += shift->result;
         }
         else {
@@ -339,14 +340,27 @@ static void executeSDTI(State *state) {
     free(shift);
 }
 
-static void executeBranch(State *state) {
+static void flushPipeline(State *state) {
+    state->fetched = 0;
+    state->decoded.instruction = 0;
+    state->decoded.isSet = false;
 }
+
+static void executeBranch(State *state) {
+    flushPipeline(state);
+    int offset = state->decoded.i.branch.offset;
+    int signBit = offset & BRANCH_SIGN_BIT;
+    int pcOffset = ((offset << INSTRUCTION_ADDRESS_TO_MEM_ADDRESS)
+        | (signBit ? NEGATIVE_SIGN_EXTEND : POSITIVE_SIGN_EXTEND));
+    state -> registers[PC] += pcOffset;
+}
+
 //HEY QUEEEEEENNNNNNNNNN X
 // <3 
 
 void execute(State *state) {
     word instruction = state->decoded.instruction;
-    if (instruction == 0 || !conditions(state, instruction)) { return; }
+    if (!state->decoded.isSet || !conditions(state, instruction)) { return; }
     switch (state->decoded.type) {
         case DPI:
             executeDPI(state);

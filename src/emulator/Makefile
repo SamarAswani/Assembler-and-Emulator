@@ -9,5 +9,7 @@ fetch.o: binFileLoader.h fetch.h ../definitions.h
 
 decode.o: decode.h instruction.h ../definitions.h
 
+execute.o: execute.h decode.h fetch.h instruction.h ../definitions.h
+
 clean:
 	rm -f $(wildcard *.o)

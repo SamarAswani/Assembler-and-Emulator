@@ -9,6 +9,8 @@ int main(int argc, char **argv) {
     fetch(armState);
     printf("%x\n", armState->fetched);
     decode(armState);
-    printf("%x\n", armState->decoded.dp.opcode);
+    printf("%x\n", armState->decoded.i.dp.opcode);
+    printf("%x\n", armState->decoded.isSet);
+    printf("%x\n", armState->decoded.instruction);
     destroyARMState(armState);
 }
