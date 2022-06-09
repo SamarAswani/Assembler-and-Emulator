@@ -85,7 +85,7 @@ static void store(State *state, word rd, word rn) {
         exit(EXIT_FAILURE);
     }
     for (int i = 0; i < WORD_IN_BYTES; i ++) {
-        state->memory[rn + i] = state->registers[rd] >> (i * BYTE);
+        state->memory[rn + i] = state->registers[rd] >> BYTE * i;
     }
 }
 
@@ -299,33 +299,33 @@ static void executeSDTI(State *state) {
         shift->result = rotateRight(imm, rotate);
         shift->carry = rightCarry(imm, rotate);
     }
-    word *rn = state->registers + state->decoded.i.sdt.rn;
+    word rn = state->decoded.i.sdt.rn;
     if (state->decoded.i.sdt.p) {
         if (state->decoded.i.sdt.u) {
-            *rn += shift->result;
+            rn += shift->result;
         }
         else {
-            *rn -= shift->result;
+            rn -= shift->result;
         }
         if(state->decoded.i.sdt.l) {
-            store(state, state->decoded.i.sdt.rd, *rn);
+            store(state, state->decoded.i.sdt.rd, rn);
         }
         else {
-            load(state, state->decoded.i.sdt.rd, *rn);
+            load(state, state->decoded.i.sdt.rd, rn);
         }
     }
     else {
         if(state->decoded.i.sdt.l) {
-            store(state, state->decoded.i.sdt.rd, *rn);
+            store(state, state->decoded.i.sdt.rd, rn);
         }
         else {
-            load(state, state->decoded.i.sdt.rd, *rn);
+            load(state, state->decoded.i.sdt.rd, rn);
         }
         if (state->decoded.i.sdt.u) {
-            *rn += shift->result;
+            rn += shift->result;
         }
         else {
-            *rn -= shift->result;
+            rn -= shift->result;
         }
     }
     free(shift);
