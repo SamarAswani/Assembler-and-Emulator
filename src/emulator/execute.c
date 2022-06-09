@@ -6,7 +6,7 @@
 #include "fetch.h"
 #include "instruction.h"
 
-void updateCSPR(State *state, word res, unsigned int carry) {
+void updateCPSR(State *state, word res, unsigned int carry) {
     word n = res & (1 << N_SHIFT);
     word z;
     word c;
@@ -125,7 +125,7 @@ static OperationInstruction *barrelShifter(State *state, word val, unsigned int 
    OperationInstruction* resShift = malloc(sizeof(OperationInstruction));
    if (resShift == NULL) {
     perror("null pointer");
-    errorExit(MEM_SIZE);
+    exit(MEM_SIZE);
    }
    word res;
    unsigned int carry;
@@ -154,7 +154,8 @@ static OperationInstruction *barrelShifter(State *state, word val, unsigned int 
         break;
 
     default:
-        errorExit("case error");
+        perror("case error");
+        exit(EXIT_FAILURE);
    }
 
    resShift -> result = res, resShift -> carry = carry;
@@ -162,21 +163,6 @@ static OperationInstruction *barrelShifter(State *state, word val, unsigned int 
 
 }
 
-static void store(State *state, word rd, word rn) {
-    if(rn > MEM_SIZE) {
-        perror("Tried to access memory out of bounds.");
-        exit(EXIT_FAILURE);
-    }
-    for (int i = 0; i < WORD_IN_BYTES; i ++) {
-        state->memory[rn + i] = state->registers[rd] >> (i * BYTE);
-    }
-}
-
-static void load(State *state, word rd, word rn) {
-    state->registers[rd] = getWord(state, rn);
-}
-
-static void executeDPI(State *state) {
 OperationInstruction *registerOperand (State *state, unsigned int operand) {
     unsigned int RM = (operand & RM_MASK);
     word val = state -> registers[RM];
@@ -191,7 +177,7 @@ OperationInstruction *immediateOperand (State *state, unsigned int operand) {
     OperationInstruction* resShift = malloc(sizeof(OperationInstruction));
     if (resShift == NULL) {
         perror("null pointer");
-        errorExit(MEM_SIZE);
+        exit(MEM_SIZE);
     }
 
     resShift->result = rotateRight(imm, rotate);
@@ -272,10 +258,11 @@ static void executeDPI(State *state) {
             state->registers[rd] = res;
             break;
         default:
-            errorExit("case error");    
+            perror("case error");    
+            exit(EXIT_FAILURE);
     }
     if (state->decoded.i.dp.s) {
-        setCPSR(state, res, carry);
+        updateCPSR(state, res, carry);
     }
     free(opShifted);
     // free(state->decoded);
@@ -289,7 +276,7 @@ static void executeMultiply(State *state) {
     }
     if (state->decoded.i.multiply.s) {
         unsigned int c = (state->registers[CPSR] & (1 << C_SHIFT)) >> C_SHIFT;
-        updateCSPR(state, res, c);
+        updateCPSR(state, res, c);
     }
     state->registers[state->decoded.i.multiply.rd] = res;
 }
@@ -299,7 +286,7 @@ static void executeSDTI(State *state) {
     if(state->decoded.i.sdt.i) {
         word rmValue = state->registers[state->decoded.i.sdt.offset & OFFSET_RM_MASK];
         unsigned int shiftBy = state->decoded.i.sdt.offset >> SHIFT;
-        OperationInstruction *shift = shifter(state, rmValue, shiftBy);
+        OperationInstruction *shift = barrelShifter(state, rmValue, shiftBy);
     }
     else {
         word imm = state->decoded.i.sdt.offset & OFFSET_IMMEDIATE_MASK;
@@ -354,9 +341,6 @@ static void executeBranch(State *state) {
         | (signBit ? NEGATIVE_SIGN_EXTEND : POSITIVE_SIGN_EXTEND));
     state -> registers[PC] += pcOffset;
 }
-
-//HEY QUEEEEEENNNNNNNNNN X
-// <3 
 
 void execute(State *state) {
     word instruction = state->decoded.instruction;
