@@ -277,18 +277,6 @@ static void executeSDTI(State *state) {
     OperationInstruction *shift = state->decoded.i.sdt.i 
     ? registerOperand(state, state->decoded.i.sdt.offset) 
     : immediateOperand(state, state->decoded.i.sdt.offset);
-    // if(state->decoded.i.sdt.i) {
-    //     word rmValue = state->registers[state->decoded.i.sdt.offset & OFFSET_RM_MASK];
-    //     unsigned int shiftBy = state->decoded.i.sdt.offset >> SHIFT;
-    //     shift = barrelShifter(state, rmValue, shiftBy);
-    // }
-    // else {
-    //     word imm = state->decoded.i.sdt.offset & OFFSET_IMMEDIATE_MASK;
-        // unsigned int rotate = ((state->decoded.i.sdt.offset & OFFSET_ROTATE_MASK) >> ROTATE_SHIFT) * 2;
-    //     shift = malloc(sizeof(*shift));
-    //     shift->result = rotateRight(imm, rotate);
-    //     shift->carry = rightCarry(imm, rotate);
-    // }
     word *rn = state->registers + state->decoded.i.sdt.rn;
     word offset = shift->result;
     if (!state->decoded.i.sdt.u) {
@@ -309,7 +297,7 @@ static void executeSDTI(State *state) {
         else {
             store(state, state->decoded.i.sdt.rd, *rn);
         }
-        rn += offset;
+        *rn += offset;
     }
     free(shift);
 }
