@@ -25,13 +25,7 @@ State *initARMState(const char *fileName) {
 }
 
 word getWord(State *armState, word address) {
-    if (address + 3 >= MEM_SIZE) {
-        perror("Tried to access memory out of bounds.");
-        exit(EXIT_FAILURE);
-    }
-
     word fetched = 0;
-
     for (int i = 0; i < WORD_IN_BYTES; i ++) {
         fetched += armState->memory[address + i] << (i * BYTE);
     }

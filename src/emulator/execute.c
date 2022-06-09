@@ -75,6 +75,7 @@ static unsigned int rotateRightCarry(word imm, unsigned int rotate) {
 static void store(State *state, word rd, word rn) {
     if(rn > MEM_SIZE) {
         printf("Error: Out of bounds memory access at address 0x%08x\n", rn);
+        return;
     }
     for (int i = 0; i < WORD_IN_BYTES; i ++) {
         state->memory[rn + i] = state->registers[rd] >> BYTE * i;
@@ -84,6 +85,7 @@ static void store(State *state, word rd, word rn) {
 static void load(State *state, word rd, word rn) {
     if (rn > MEM_SIZE) {
         printf("Error: Out of bounds memory access at address 0x%08x\n", rn);
+        return;
     }
     state->registers[rd] = getWord(state, rn);
 }
