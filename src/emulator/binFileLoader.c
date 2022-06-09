@@ -23,4 +23,5 @@ void loadBinFile(const char *fileName, State *armState) {
     }
 
     fread(armState->memory, sizeof(byte), MEM_SIZE, file);
+    fclose(file);
 }

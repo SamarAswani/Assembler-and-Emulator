@@ -266,8 +266,7 @@ static void executeDPI(State *state) {
 }
 
 static void executeMultiply(State *state) {
-    int res = state->registers[state->decoded.i.multiply.s] * state->registers[state->decoded.i.multiply.rm];
-    // printf("%d\n", res);
+    int res = state->registers[state->decoded.i.multiply.rs] * state->registers[state->decoded.i.multiply.rm];
     if (state->decoded.i.multiply.a) {
         res += state->registers[state->decoded.i.multiply.rn];
     }
@@ -276,8 +275,6 @@ static void executeMultiply(State *state) {
         updateCPSR(state, res, c);
     }
     state->registers[state->decoded.i.multiply.rd] = res;
-    // printf("%d\n", res);
-    // printf("%d\n", state->registers[state->decoded.i.multiply.rd]);
 }
 
 static void executeSDTI(State *state) {
