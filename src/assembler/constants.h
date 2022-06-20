@@ -5,6 +5,6 @@
 
 #define INITIAL_SIZE 8
 #define HEX 16
-
+#define MAX_FIELD_COUNT 5
 
 #endif
