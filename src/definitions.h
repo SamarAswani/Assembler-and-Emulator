@@ -72,6 +72,11 @@ typedef enum OpcodeBranch {
     B 
 } OpcodeBranch;
 
+typedef enum OtherOpcode{ 
+    LSL_2,
+    ANDEQ 
+} OtherOpcode;
+
 typedef enum InstructionType { 
     DPI, 
     MULT, 
