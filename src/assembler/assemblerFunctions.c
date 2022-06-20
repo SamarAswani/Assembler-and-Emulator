@@ -28,11 +28,11 @@ unsigned int immediateVal(char *operand) {
   return (unsigned int) atoi(operand);
 }
 
-word getLine(SymbolTable *symbolTable, const char *line, word address) {
+word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
     char *other = NULL;
     char *lineTemp = strptr(line);
 
-    char *fields[MAX_FIELD_COUNT];
+    char *tokens[MAX_TOKEN_COUNT];
     int count = 0;
     char *token = strtok_r(lineTemp, " ,", &other);
     while (token != NULL) {
@@ -40,7 +40,7 @@ word getLine(SymbolTable *symbolTable, const char *line, word address) {
             ++other;
             continue;
         }
-    fields[count++] = token;
+    tokens[count++] = token;
     if (other[0] == '[') { 
       token = strtok_r(other, "]", &other);
     } else {
