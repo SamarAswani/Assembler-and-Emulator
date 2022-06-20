@@ -12,4 +12,6 @@ typedef struct {
   unsigned int max;
 } File;
 
+extern char *strptr(const char *str);
+
 #endif
