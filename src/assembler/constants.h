@@ -3,6 +3,6 @@
 
 #include <stdlib.h>
 
-
+#define INITIAL_SIZE 8
 
 #endif
