@@ -78,7 +78,7 @@ word assemble(SymbolTable *symbolTable, Instruction instructionIn) {
   }
   word lineReturn;
   if (symbol->type == OPCODE) {
-    lineReturn = symbol->value.assembleFunc(symbolTable, instructionIn);
+    lineReturn = symbol->value.assembleFunction(symbolTable, instructionIn);
   } else {
     lineReturn = immediateVal(instructionIn.opcode + 1);
   }
