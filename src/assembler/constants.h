@@ -8,6 +8,8 @@
 #define MAX_TOKEN_COUNT 5
 #define ALWAYS 0xE
 #define ARM_OFFSET 8
+#define SYMBOLS 23
+#define WORD_TO_BYTE 4
 
 #define MULT 0x90
 #define MULT_START (ALWAYS << COND_SHIFT)
