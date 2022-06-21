@@ -15,4 +15,8 @@
 #define BRANCH_START (ALWAYS << COND_SHIFT)
 #define BRANCH 0x0A000000
 
+#define SDTI_START (ALWAYS << COND_SHIFT)
+#define SDTI 0x4000000
+#define SDTI_BOUND 0xFF
+#define POST_IDX 3
 #endif

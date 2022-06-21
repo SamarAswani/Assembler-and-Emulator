@@ -11,6 +11,18 @@
 
 #include <stdio.h>
 
+int lookup(const tableStruct table[], const char *key, const int size);
+
+unsigned int immediateVal(char *operand);
+
+word assembleMultiply(SymbolTable *symbolTable, Instruction instruction)
+
+word assembleBranch(SymbolTable *symbolTable, Instruction instruction);
+
+word tokenizeLine(SymbolTable *symbolTable, const char *line, word address);
+
+typedef enum { NUMERIC_CONST, PRE_IDX, PRE_IDX_EXP, POST_IDX_EXP } SDTIAddressType;
+
 typedef struct {
   char *key;
   word value;
