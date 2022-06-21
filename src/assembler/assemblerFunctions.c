@@ -90,4 +90,8 @@ word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
       token = strtok_r(NULL, " ,", &other);
     }
   }
-}   
+
+  //create instruction struct and store
+
+} 
+
