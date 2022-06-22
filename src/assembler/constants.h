@@ -28,4 +28,8 @@
 #define SDTI_BOUND 0xFF
 #define POST_IDX 3
 
+#define SHIFT_REG 1 << 4
+#define SHIFT_NUM 7
+#define SHIFT_TYPE 5
+
 #endif

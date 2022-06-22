@@ -35,23 +35,40 @@ static word rotateLeft(word imm, unsigned int rotate) {
 }
 
 static word rotateImm(word imm) {
-  unsigned int mask = 1;
-  unsigned int rotation = 0;
-  for (int i = 0; i < WORD_SIZE; i++) {
-    if (mask & imm) {
-      rotation = WORD_SIZE - i;
-      break;
+    unsigned int mask = 1;
+    unsigned int rotation = 0;
+    for (int i = 0; i < WORD_SIZE; i++) {
+      if (mask & imm) {
+        rotation = WORD_SIZE - i;
+        break;
+      }
+      mask = mask << 1;
     }
-    mask = mask << 1;
-  }
 
-  if (rotation % 2 != 0) {
-    rotation++;
-  }
+    if (rotation % 2 != 0) {
+      rotation++;
+    }
 
-  imm = rotateLeft(imm, rotation);
-  rotation /= ROTATE;
-  return (rotation << ROTATION) | imm;
+    imm = rotateLeft(imm, rotation);
+    rotation /= ROTATE;
+    return (rotation << ROTATION) | imm;
+}
+
+static word parseRegister(char **op2, unsigned int args) {
+    unsigned int rm = atoi(++op2[0]);
+    if (args < DEFAULT_ARGS) {
+      return rm;
+    }
+    Shift type = lookup(shift, op2[1], 4);
+    if (op2[2][0] == '#') {
+      return (immediateVal(++op2[2]) << SHIFT_NUM) | (type << SHIFT_TYPE) | rm;
+    }
+    unsigned int rs = atoi(++op2[2]);
+    if (rs == PC) {
+      perror("rs = PC");
+      exit(0);
+    }
+    return (rs << RS_SHIFT) | (type << SHIFT_TYPE) | SHIFT_REG | rm;
 }
 
 word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
@@ -116,7 +133,7 @@ word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     char *line = instruction.operands[0];
 
     word newAddress;
-    if (line[0] == '#' || line[0] == '=') {
+    if (line[0] == '#') {
       newAddress = atoi(++line);
     } else {
       Symbol *symbol = get(symbolTable, line);
@@ -131,7 +148,7 @@ word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     return cond | BRANCH | offset;
 }
 
-word assembleDPI(Symbol *symbolTable, Instruction instruction) {
+word assembleDPI(SymbolTable *symbolTable, Instruction instruction) {
     word opcode = instruction.mnemonic;
     word rd = 0;
     char *imm;
@@ -176,19 +193,19 @@ word assembleDPI(Symbol *symbolTable, Instruction instruction) {
     rn = rn << DPI_RN_SHIFT;
     rd = rd << DPI_RD_SHIFT;
 
-    if (imm[0] == '#' || imm[0] == '=') {
+    if (imm[0] == '#') {
       i = 1 << DPI_I_SHIFT;
     } else {
       i = 0;
     }
 
-    if (op2[0][0] == '#' || op2[0][0] == '=') {
+    if (op2[0][0] == '#') {
       word imm = (word)immediateVal(++op2[0]);
       if (imm > MAX) {
-        imm = rotateImm(imm);
+        operand2 = rotateImm(imm);
       }
     } else {
-      // register
+      operand2 = parseRegister(op2,args);
     }
 
     return DPI_START | i | opcode | s | rn | rd | operand2;
@@ -237,17 +254,17 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
 
 
 word assemble(SymbolTable *symbolTable, Instruction instruction) {
-  Symbol *symbol = get(symbolTable, instruction.opcode);
-  if (symbol == NULL) {
-    return 0;
-  }
-  word lineReturn;
-  if (symbol->type == OPCODE) {
-    lineReturn = symbol->value.assembleFunction(symbolTable, instruction);
-  } else {
-    lineReturn = immediateVal(instruction.opcode + 1);
-  }
-  return lineReturn;
+    Symbol *symbol = get(symbolTable, instruction.opcode);
+    if (symbol == NULL) {
+      return 0;
+    }
+    word lineReturn;
+    if (symbol->type == OPCODE) {
+      lineReturn = symbol->value.assembleFunction(symbolTable, instruction);
+    } else {
+      lineReturn = immediateVal(instruction.opcode + 1);
+    }
+    return lineReturn;
 }
 
 word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
@@ -268,17 +285,17 @@ word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
     } else {
       token = strtok_r(NULL, " ,", &other);
     }
-  }
+    }
 
-  Instruction instruction = {tokens[0], lookup(opcode, SYMBOLS, tokens[0]), tokens + 1, count-1, address};
-  word lineReturn = assemble(symbolTable, instruction);
-  free(lineTemp);
-  return lineReturn;
+    Instruction instruction = {tokens[0], lookup(opcode, tokens[0], SYMBOLS), tokens + 1, count - 1, address};
+    word lineReturn = assemble(symbolTable, instruction);
+    free(lineTemp);
+    return lineReturn;
 }
 
 void secondPassLines(File *file, SymbolTable *symbolTable, FILE *out) {
-  for (int line = 0; line < file->count; line++) {
-    word lineWrite = tokenizeLine(symbolTable, file->lines[line], line * WORD_TO_BYTE);
-    fwrite(&lineWrite, sizeof(word), 1, out);
-  }
+    for (int line = 0; line < file->count; line++) {
+      word lineWrite = tokenizeLine(symbolTable, file->lines[line], line * WORD_TO_BYTE);
+      fwrite(&lineWrite, sizeof(word), 1, out);
+    }
 }
