@@ -73,6 +73,10 @@ word assembleMultiply(SymbolTable *symbolTable, Instruction instruction);
 
 word assembleBranch(SymbolTable *symbolTable, Instruction instruction);
 
+word assembleDPI(SymbolTable *symbolTable, Instruction instruction);
+
+word assembleSDTI(SymbolTable *symbolTable, Instruction instruction);
+
 word tokenizeLine(SymbolTable *symbolTable, const char *line, word address);
 
 #endif
