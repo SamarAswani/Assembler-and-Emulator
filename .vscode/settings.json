@@ -1,0 +1,21 @@
+{
+    "files.associations": {
+        "__bit_reference": "c",
+        "__functional_base": "c",
+        "algorithm": "c",
+        "bitset": "c",
+        "chrono": "c",
+        "deque": "c",
+        "__memory": "c",
+        "functional": "c",
+        "iterator": "c",
+        "limits": "c",
+        "random": "c",
+        "ratio": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "vector": "c",
+        "array": "c",
+        "utility": "c"
+    }
+}

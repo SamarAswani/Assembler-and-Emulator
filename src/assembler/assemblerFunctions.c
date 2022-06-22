@@ -190,10 +190,8 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
         case PRE_IDX_EXP:
             u = addresses[2] << SDTI_U_SHIFT;
             offset = addresses[1];
-//            could add optional
         case POST_IDX_EXP:
             offset = atoi((++instruction.operands[2]));
-//            could add optional post immediate offset
             break;
         case NUMERIC_CONST:
             if (immediateVal(instruction.operands[1] + 1) <= SDTI_BOUND) {
@@ -202,10 +200,8 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
                 instruction.mnemonic = MOV;
                 return assembleDPI(symbolTable, instruction);
             } else {
-                // offset
-                offset = lookup(symbolTable, instruction.operands[1], 2)->value.address - ARM_OFFSET;
+                offset = get(symbolTable, instruction.operands[1])->value.address - ARM_OFFSET;
                 offset -= instruction.address;
-                // Base register Rn
                 rn = PC << SDTI_RN_SHIFT;
             }
             break;
