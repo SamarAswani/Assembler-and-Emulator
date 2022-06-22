@@ -197,10 +197,15 @@ word assembleDPI(SymbolTable *symbolTable, Instruction instruction) {
       i = 0;
     }
 
+
     if (op2[0][0] == '#') {
       word imm = (word)immediateVal(++op2[0]);
       if (imm > MAX) {
         operand2 = rotateImm(imm);
+      }
+      //not sure about this
+      else {
+        operand2 = imm;
       }
     } else {
       operand2 = parseRegister(op2,args);
