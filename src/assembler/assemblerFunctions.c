@@ -3,8 +3,6 @@
 #include "loadArmLines.h"
 #include "symbolTable.h"
 #include "../emulator/instruction.h"
-#include "../utility.h"
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +46,10 @@ word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
 
 static word *SDTIparser(const char* string) {
     word *addressRegExp = malloc(sizeof(word*) *4);
-    ptrCheck(addressRegExp);
+    if (addressRegExp == NULL) {
+        printf("Error: NULL pointer.");
+        exit(0);
+    }
 //    separator
     char *sep = ", ";
 //    remove initial bracket
@@ -209,7 +210,8 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
             }
             break;
         default:
-            throwPrint("Unexpected SDTI addressing method");
+            printf("Error: Unexpected SDTI addressing method");
+            exit(0);
     }
     free(addresses);
     return START | SDTI | i | p | u | l | rn | rd | offset;
