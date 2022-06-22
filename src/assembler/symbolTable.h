@@ -9,21 +9,13 @@
 
 typedef enum { LABEL, OPCODE } SymbolType;
 
-typedef struct Instruction {
-    char *opcode;
-    int mnemonic;
-    char **operands;
-    unsigned int opCount;
-    word address;
-} Instruction;
-
 typedef struct Symbol {
     char *key;            // Opcode mnemonic or label
     SymbolType type;
     union {
         word address;     // Used to translate labels into addresses
-        // Function pointer - Used to determine which function is used 
-        //                    to assemble a particular opcode mnemonic.
+        // Function pointer to the opcode mnemonic's assemble function
+        word (*assembleFunction)(SymbolTable *, Instruction); 
     } value;
     struct Symbol *left;
     struct Symbol *right;

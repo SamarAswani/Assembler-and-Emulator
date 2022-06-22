@@ -9,6 +9,8 @@
 #define ALWAYS 0xE
 #define ARM_OFFSET 8
 #define DEFAULT_ARGS 3
+#define SYMBOLS 23
+#define WORD_TO_BYTE 4
 
 #define MULTIPLY 0x90
 #define MULT_START (ALWAYS << COND_SHIFT)

@@ -50,7 +50,7 @@ word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     if (instruction.mnemonic == B) {
       cond = BRANCH_START;
     } else {
-      cond = lookup(condTable, ++instruction.opcode, 7) << COND_SHIFT;
+      cond = lookup(condition, ++instruction.opcode, 7) << COND_SHIFT;
     }
 
     char *line = instruction.operands[0];
@@ -131,6 +131,20 @@ word assembleDPI(Symbol *symbolTable, Instruction instruction) {
     return DPI_START | i | opcode | s | rn | rd | operand2;
 }
 
+word assemble(SymbolTable *symbolTable, Instruction instructionIn) {
+  Symbol *symbol = getSymbol(symbolTable, instructionIn.opcode);
+  if (symbol == NULL) {
+    return 0;
+  }
+  word lineReturn;
+  if (symbol->type == OPCODE) {
+    lineReturn = symbol->value.assembleFunction(symbolTable, instructionIn);
+  } else {
+    lineReturn = immediateVal(instructionIn.opcode + 1);
+  }
+  return lineReturn;
+}
+
 word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
     char *other = NULL;
     char *lineTemp = strptr(line);
@@ -150,4 +164,21 @@ word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
       token = strtok_r(NULL, " ,", &other);
     }
   }
+  
+  Instruction instruction = {tokens[0], lookup(opcode, SYMBOLS, tokens[0]), tokens + 1, count-1, address};
+  word lineReturn = assemble(symbolTable, instruction);
+  free(lineTemp);
+  return lineReturn;
+} 
+
+
+
+void secondPassLines(File *file, SymbolTable *symbolTable, FILE *out) {
+  for (int line = 0; line < file->count; line++) {
+    word lineWrite = parseLine(symbolTable, file->lines[line], line * WORD_TO_BYTE);
+    fwrite(&lineWrite, sizeof(word), 1, out);
+  }
 }
+
+
+

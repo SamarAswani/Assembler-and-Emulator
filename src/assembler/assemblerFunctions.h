@@ -16,8 +16,16 @@ typedef struct {
   word value;
 } tableStruct;
 
+typedef struct Instruction {
+    char *opcode;
+    int mnemonic;
+    char **operands;
+    unsigned int opCount;
+    word address;
+} Instruction;
 
-static const tableStruct condTable[] = {{"eq", EQ}, 
+
+static const tableStruct condition[] = {{"eq", EQ}, 
                                         {"ne", NE}, 
                                         {"ge", GE},
                                         {"lt", LT}, 
@@ -25,9 +33,9 @@ static const tableStruct condTable[] = {{"eq", EQ},
                                         {"le", LE},
                                         {"al", AL}};
 
-static const tableStruct shiftTable[] = {{"lsl", LSL}, {"lsr", LSR}, {"asr", ASR}, {"ror", ROR}};
+static const tableStruct shift[] = {{"lsl", LSL}, {"lsr", LSR}, {"asr", ASR}, {"ror", ROR}};
 
-static const tableStruct opcodeTable[] = {{"and", AND}, 
+static const tableStruct opcode[] = {{"and", AND}, 
                                           {"eor", EOR}, 
                                           {"sub", SUB},     
                                           {"rsb", RSB},
