@@ -79,4 +79,6 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction);
 
 word tokenizeLine(SymbolTable *symbolTable, const char *line, word address);
 
+void firstPass(FILE *assemblyFile, SymbolTable *table, File *lines);
+
 #endif

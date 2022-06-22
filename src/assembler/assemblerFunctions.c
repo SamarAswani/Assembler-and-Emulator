@@ -293,6 +293,26 @@ word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
     return lineReturn;
 }
 
+void firstPass(FILE *assemblyFile, SymbolTable *table, File *lines) {
+    char line[MAX_LINE_SIZE];
+    while (fgets(line, MAX_LINE_SIZE, assemblyFile) != NULL) {
+        bool isLabel = false;
+        for (int i = 0; line[i] != '\0'; i ++) {
+            if (line[i] == ':') {
+                // Current line is a label
+                isLabel = true;
+                Symbol label = createLabelSymbol(strtok(line, ":"), lines->count * WORD_TO_BYTE);
+                add(table, label);
+                break;
+            } 
+
+            if (line[i] == '#') {
+                // Current line contains an immediate value
+            }
+        }
+    }
+}
+
 void secondPassLines(File *file, SymbolTable *symbolTable, FILE *out) {
     for (int line = 0; line < file->count; line++) {
       word lineWrite = tokenizeLine(symbolTable, file->lines[line], line * WORD_TO_BYTE);
