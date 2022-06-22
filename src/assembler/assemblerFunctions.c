@@ -2,7 +2,6 @@
 #include "constants.h"
 #include "loadArmLines.h"
 #include "symbolTable.h"
-#include "../emulator/instruction.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +28,48 @@ unsigned int immediateVal(char *operand) {
     return (unsigned int) atoi(operand);
 }
 
+static word rotateLeft(word imm, unsigned int rotate) {
+    unsigned int msbs = imm & ~((1 << (WORD_SIZE - rotate)) - 1);
+    return (imm << rotate) | (msbs >> (WORD_SIZE - rotate));
+}
+
+static word rotateImm(word imm) {
+    unsigned int mask = 1;
+    unsigned int rotation = 0;
+    for (int i = 0; i < WORD_SIZE; i++) {
+      if (mask & imm) {
+        rotation = WORD_SIZE - i;
+        break;
+      }
+      mask = mask << 1;
+    }
+
+    if (rotation % 2 != 0) {
+      rotation++;
+    }
+
+    imm = rotateLeft(imm, rotation);
+    rotation /= ROTATE;
+    return (rotation << ROTATION) | imm;
+}
+
+static word parseRegister(char **op2, unsigned int args) {
+    unsigned int rm = atoi(++op2[0]);
+    if (args < DEFAULT_ARGS) {
+      return rm;
+    }
+    Shift type = lookup(shift, op2[1], 4);
+    if (op2[2][0] == '#') {
+      return (immediateVal(++op2[2]) << SHIFT_NUM) | (type << SHIFT_TYPE) | rm;
+    }
+    unsigned int rs = atoi(++op2[2]);
+    if (rs == PC) {
+      perror("rs = PC");
+      exit(0);
+    }
+    return (rs << RS_SHIFT) | (type << SHIFT_TYPE) | SHIFT_REG | rm;
+}
+
 word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
     word rd = atoi(++instruction.operands[0]) << RD_SHIFT;
     word rm = atoi(++instruction.operands[1]);
@@ -41,7 +82,7 @@ word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
       acc = 1 << ACC_SHIFT;
     }
 
-    return START | acc | rd | rn | rs | MULT | rm;
+    return START | acc | rd | rn | rs | MULTIPLY | rm;
 }
 
 static word *SDTIparser(const char* string) {
@@ -91,7 +132,7 @@ word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     char *line = instruction.operands[0];
 
     word newAddress;
-    if (line[0] == '#' || line[0] == '=') {
+    if (line[0] == '#') {
       newAddress = atoi(++line);
     } else {
       Symbol *symbol = get(symbolTable, line);
@@ -106,7 +147,7 @@ word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     return cond | BRANCH | offset;
 }
 
-word assembleDPI(Symbol *symbolTable, Instruction instruction) {
+word assembleDPI(SymbolTable *symbolTable, Instruction instruction) {
     word opcode = instruction.mnemonic;
     word rd = 0;
     char *imm;
@@ -151,16 +192,19 @@ word assembleDPI(Symbol *symbolTable, Instruction instruction) {
     rn = rn << DPI_RN_SHIFT;
     rd = rd << DPI_RD_SHIFT;
 
-    if (imm[0] == '#' || imm[0] == '=') {
+    if (imm[0] == '#') {
       i = 1 << DPI_I_SHIFT;
     } else {
       i = 0;
     }
 
-    if (op2[0][0] == '#' || op2[0][0] == '=') {
-      // immediate
+    if (op2[0][0] == '#') {
+      word imm = (word)immediateVal(++op2[0]);
+      if (imm > MAX) {
+        operand2 = rotateImm(imm);
+      }
     } else {
-      // register
+      operand2 = parseRegister(op2,args);
     }
 
     return DPI_START | i | opcode | s | rn | rd | operand2;
@@ -168,7 +212,6 @@ word assembleDPI(Symbol *symbolTable, Instruction instruction) {
 
 word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
     SDTIAddressType addressType = getSDTIAddressType(instruction.operands, instruction.opCount );
-//  var names inline with spec see for definitions of each
     word i = 0;
     word p = (addressType == POST_IDX_EXP) ? 0 : (1 << SDTI_P_SHIFT);
     word u = 1 << SDTI_U_SHIFT;
@@ -205,22 +248,22 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
             exit(0);
     }
     free(addresses);
-    return START | SDTI | i | p | u | l | rn | rd | offset;
+    return START | SDT | i | p | u | l | rn | rd | offset;
 }
 
 
 word assemble(SymbolTable *symbolTable, Instruction instruction) {
-  Symbol *symbol = getSymbol(symbolTable, instruction.opcode);
-  if (symbol == NULL) {
-    return 0;
-  }
-  word lineReturn;
-  if (symbol->type == OPCODE) {
-    lineReturn = symbol->value.assembleFunction(symbolTable, instruction);
-  } else {
-    lineReturn = immediateVal(instruction.opcode + 1);
-  }
-  return lineReturn;
+    Symbol *symbol = get(symbolTable, instruction.opcode);
+    if (symbol == NULL) {
+      return 0;
+    }
+    word lineReturn;
+    if (symbol->type == OPCODE) {
+      lineReturn = symbol->value.assembleFunction(symbolTable, instruction);
+    } else {
+      lineReturn = immediateVal(instruction.opcode + 1);
+    }
+    return lineReturn;
 }
 
 word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
@@ -241,17 +284,37 @@ word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
     } else {
       token = strtok_r(NULL, " ,", &other);
     }
-  }
+    }
 
-  Instruction instruction = {tokens[0], lookup(opcode, SYMBOLS, tokens[0]), tokens + 1, count-1, address};
-  word lineReturn = assemble(symbolTable, instruction);
-  free(lineTemp);
-  return lineReturn;
+    Instruction instruction = {tokens[0], lookup(opcode, tokens[0], SYMBOLS), tokens + 1, count - 1, address};
+    word lineReturn = assemble(symbolTable, instruction);
+    free(lineTemp);
+    return lineReturn;
+}
+
+void firstPass(FILE *assemblyFile, SymbolTable *table, File *lines) {
+    char line[MAX_LINE_SIZE];
+    while (fgets(line, MAX_LINE_SIZE, assemblyFile) != NULL) {
+        bool isLabel = false;
+        for (int i = 0; line[i] != '\0'; i ++) {
+            if (line[i] == ':') {
+                // Current line is a label
+                isLabel = true;
+                Symbol label = createLabelSymbol(strtok(line, ":"), lines->count * WORD_TO_BYTE);
+                add(table, label);
+                break;
+            } 
+
+            if (line[i] == '#') {
+                // Current line contains an immediate value
+            }
+        }
+    }
 }
 
 void secondPassLines(ArmLines *file, SymbolTable *symbolTable, FILE *out) {
-  for (int line = 0; line < file->count; line++) {
-    word lineWrite = parseLine(symbolTable, file->lines[line], line * WORD_TO_BYTE);
-    fwrite(&lineWrite, sizeof(word), 1, out);
-  }
+    for (int line = 0; line < file->count; line++) {
+      word lineWrite = tokenizeLine(symbolTable, file->lines[line], line * WORD_TO_BYTE);
+      fwrite(&lineWrite, sizeof(word), 1, out);
+    }
 }
