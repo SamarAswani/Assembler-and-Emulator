@@ -29,6 +29,31 @@ unsigned int immediateVal(char *operand) {
     return (unsigned int) atoi(operand);
 }
 
+static word rotateLeft(word imm, unsigned int rotate) {
+    unsigned int msbs = imm & ~((1 << (WORD_SIZE - rotate)) - 1);
+    return (imm << rotate) | (msbs >> (WORD_SIZE - rotate));
+}
+
+static word rotateImm(word imm) {
+  unsigned int mask = 1;
+  unsigned int rotation = 0;
+  for (int i = 0; i < WORD_SIZE; i++) {
+    if (mask & imm) {
+      rotation = WORD_SIZE - i;
+      break;
+    }
+    mask = mask << 1;
+  }
+
+  if (rotation % 2 != 0) {
+    rotation++;
+  }
+
+  imm = rotateLeft(imm, rotation);
+  rotation /= ROTATE;
+  return (rotation << ROTATION) | imm;
+}
+
 word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
     word rd = atoi(++instruction.operands[0]) << RD_SHIFT;
     word rm = atoi(++instruction.operands[1]);
@@ -41,7 +66,7 @@ word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
       acc = 1 << ACC_SHIFT;
     }
 
-    return START | acc | rd | rn | rs | MULT | rm;
+    return START | acc | rd | rn | rs | MULTIPLY | rm;
 }
 
 static word *SDTIparser(const char* string) {
@@ -50,19 +75,14 @@ static word *SDTIparser(const char* string) {
         printf("Error: NULL pointer.");
         exit(0);
     }
-//    separator
     char *sep = ", ";
-//    remove initial bracket
     char *stringTemp = strptr(string + 1);
-//    rn
     char *token = strtok(stringTemp, sep);
     if (token[0] == 'r') {
-//        for constant or register
         (++token);
     }
     addressRegExp[0] = immediateVal(token);
     char* secondToken = strtok(NULL, sep);
-//    checking of existence of expression
     if (secondToken != NULL) {
         addressRegExp[3] = token[0] == 'r' ? 1 : 0;
         addressRegExp[2] = (++token)[0] == '-' ? 0 : 1;
@@ -163,7 +183,10 @@ word assembleDPI(Symbol *symbolTable, Instruction instruction) {
     }
 
     if (op2[0][0] == '#' || op2[0][0] == '=') {
-      // immediate
+      word imm = (word)immediateVal(++op2[0]);
+      if (imm > MAX) {
+        imm = rotateImm(imm);
+      }
     } else {
       // register
     }
@@ -173,7 +196,6 @@ word assembleDPI(Symbol *symbolTable, Instruction instruction) {
 
 word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
     SDTIAddressType addressType = getSDTIAddressType(instruction.operands, instruction.opCount );
-//  var names inline with spec see for definitions of each
     word i = 0;
     word p = (addressType == POST_IDX_EXP) ? 0 : (1 << SDTI_P_SHIFT);
     word u = 1 << SDTI_U_SHIFT;
@@ -210,12 +232,12 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
             exit(0);
     }
     free(addresses);
-    return START | SDTI | i | p | u | l | rn | rd | offset;
+    return START | SDT | i | p | u | l | rn | rd | offset;
 }
 
 
 word assemble(SymbolTable *symbolTable, Instruction instruction) {
-  Symbol *symbol = getSymbol(symbolTable, instruction.opcode);
+  Symbol *symbol = get(symbolTable, instruction.opcode);
   if (symbol == NULL) {
     return 0;
   }
@@ -256,7 +278,7 @@ word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
 
 void secondPassLines(File *file, SymbolTable *symbolTable, FILE *out) {
   for (int line = 0; line < file->count; line++) {
-    word lineWrite = parseLine(symbolTable, file->lines[line], line * WORD_TO_BYTE);
+    word lineWrite = tokenizeLine(symbolTable, file->lines[line], line * WORD_TO_BYTE);
     fwrite(&lineWrite, sizeof(word), 1, out);
   }
 }

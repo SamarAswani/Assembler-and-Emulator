@@ -19,6 +19,8 @@
         "memory": "c",
         "array": "c",
         "utility": "c",
-        "variant": "c"
+        "variant": "c",
+        "string.h": "c",
+        "utility.h": "c"
     }
 }
