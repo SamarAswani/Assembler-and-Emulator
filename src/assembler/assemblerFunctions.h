@@ -79,4 +79,6 @@ extern word tokenizeLine(SymbolTable *symbolTable, const char *line, word addres
 
 extern void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines);
 
+extern void secondPassLines(ArmLines *file, SymbolTable *symbolTable, FILE *out);
+
 #endif

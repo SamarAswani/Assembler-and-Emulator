@@ -12,6 +12,8 @@ typedef struct {
   unsigned int max;
 } ArmLines;
 
+extern ArmLines *initArmLines(void);
 extern char *strptr(const char *str);
+extern void freeLines(ArmLines *file);
 
 #endif

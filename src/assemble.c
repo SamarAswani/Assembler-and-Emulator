@@ -42,14 +42,14 @@ int main(int argc, char **argv) {
   ArmLines *armLines = initArmLines();
 
   FILE *armFile = fopen(argv[1], "r");
-  scanFile(armFile, symbolTable, armLines);
+  firstPass(armFile, symbolTable, armLines);
   fclose(armFile);
 
   FILE *output = fopen(argv[2], "wb");
   secondPassLines(armLines, symbolTable, output);
   fclose(output);
 
-  freeSymbol(symbols);
+  // freeSymbol(symbols);
   freeSymbolTable(symbolTable);
   freeLines(armLines);
 
