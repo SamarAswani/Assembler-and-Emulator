@@ -77,6 +77,6 @@ extern word assembleSDTI(SymbolTable *symbolTable, Instruction instruction);
 
 extern word tokenizeLine(SymbolTable *symbolTable, const char *line, word address);
 
-extern void firstPass(FILE *assemblyFile, SymbolTable *table, File *lines);
+extern void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines);
 
 #endif
