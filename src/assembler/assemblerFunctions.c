@@ -59,14 +59,14 @@ static word parseRegister(char **op2, unsigned int args) {
     }
     Shift type = lookup(shift, op2[1], 4);
     if (op2[2][0] == '#') {
-      return (immediateVal(++op2[2]) << SHIFT_NUM) | (type << SHIFT_TYPE) | rm;
+      return (immediateVal(++op2[2]) << SHIFT_NUM) | (type << SHIFT_TYPE_ASS) | rm;
     }
     unsigned int rs = atoi(++op2[2]);
     if (rs == PC) {
       perror("rs = PC");
       exit(0);
     }
-    return (rs << RS_SHIFT) | (type << SHIFT_TYPE) | SHIFT_REG | rm;
+    return (rs << RS_SHIFT) | (type << SHIFT_TYPE_ASS) | SHIFT_REG | rm;
 }
 
 word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {

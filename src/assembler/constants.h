@@ -30,7 +30,7 @@
 
 #define SHIFT_REG 1 << 4
 #define SHIFT_NUM 7
-#define SHIFT_TYPE 5
+#define SHIFT_TYPE_ASS 5
 #define MAX_LINE_SIZE (512)
 
 #endif

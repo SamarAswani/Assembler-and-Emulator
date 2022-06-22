@@ -10,35 +10,34 @@
 
 int main(int argc, char **argv) {
   SymbolTable *symbolTable = createSymbolTable();
-  Symbol **symbols = createLabelSymbol(SYMBOLS, sizeof(*symbols));
   Symbol definedSymbols[SYMBOLS] = {
-      {strptr("add"), OPCODE, 0, .value.assembleFunction = assembleDPI},
-      {strptr("sub"), OPCODE, 0, .value.assembleFunction = assembleDPI},
-      {strptr("rsb"), OPCODE, 0, .value.assembleFunction = assembleDPI},
-      {strptr("and"), OPCODE, 0, .value.assembleFunction = assembleDPI},
-      {strptr("eor"), OPCODE, 0, .value.assembleFunction = assembleDPI},
-      {strptr("orr"), OPCODE, 0, .value.assembleFunction = assembleDPI},
-      {strptr("mov"), OPCODE, 0, .value.assembleFunction = assembleDPI},
-      {strptr("tst"), OPCODE, 0, .value.assembleFunction = assembleDPI},
-      {strptr("teq"), OPCODE, 0, .value.assembleFunction = assembleDPI},
-      {strptr("cmp"), OPCODE, 0, .value.assembleFunction = assembleDPI},
-      {strptr("mul"), OPCODE, 0, .value.assembleFunction = assembleMultiply},
-      {strptr("mla"), OPCODE, 0, .value.assembleFunction = assembleMultiply},
-      {strptr("ldr"), OPCODE, 0, .value.assembleFunction = assembleSDTI},
-      {strptr("str"), OPCODE, 0, .value.assembleFunction = assembleSDTI},
-      {strptr("beq"), OPCODE, 0, .value.assembleFunction = assembleBranch},
-      {strptr("bne"), OPCODE, 0, .value.assembleFunction = assembleBranch},
-      {strptr("bge"), OPCODE, 0, .value.assembleFunction = assembleBranch},
-      {strptr("blt"), OPCODE, 0, .value.assembleFunction = assembleBranch},
-      {strptr("bgt"), OPCODE, 0, .value.assembleFunction = assembleBranch},
-      {strptr("ble"), OPCODE, 0, .value.assembleFunction = assembleBranch},
-      {strptr("b"), OPCODE, 0, .value.assembleFunction = assembleBranch},
-      {strptr("lsl"), OPCODE, 0, .value.assembleFunction = assembleDPI},
-      {strptr("andeq"), OPCODE, 0, .value.assembleFunction = assembleDPI}};
+      {strptr("add"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL},
+      {strptr("sub"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL},
+      {strptr("rsb"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL},
+      {strptr("and"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL},
+      {strptr("eor"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL},
+      {strptr("orr"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL},
+      {strptr("mov"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL},
+      {strptr("tst"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL},
+      {strptr("teq"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL},
+      {strptr("cmp"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL},
+      {strptr("mul"), OPCODE, .value.assembleFunction = assembleMultiply, NULL, NULL},
+      {strptr("mla"), OPCODE, .value.assembleFunction = assembleMultiply, NULL, NULL},
+      {strptr("ldr"), OPCODE, .value.assembleFunction = assembleSDTI, NULL, NULL},
+      {strptr("str"), OPCODE, .value.assembleFunction = assembleSDTI, NULL, NULL},
+      {strptr("beq"), OPCODE, .value.assembleFunction = assembleBranch, NULL, NULL},
+      {strptr("bne"), OPCODE, .value.assembleFunction = assembleBranch, NULL, NULL},
+      {strptr("bge"), OPCODE, .value.assembleFunction = assembleBranch, NULL, NULL},
+      {strptr("blt"), OPCODE, .value.assembleFunction = assembleBranch, NULL, NULL},
+      {strptr("bgt"), OPCODE, .value.assembleFunction = assembleBranch, NULL, NULL},
+      {strptr("ble"), OPCODE, .value.assembleFunction = assembleBranch, NULL, NULL},
+      {strptr("b"), OPCODE, .value.assembleFunction = assembleBranch, NULL, NULL},
+      {strptr("lsl"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL},
+      {strptr("andeq"), OPCODE, .value.assembleFunction = assembleDPI, NULL, NULL}};
   for (int i = 0; i < SYMBOLS; i++) {
-    symbols[i][0] = definedSymbols[i];
+    add(symbolTable, &definedSymbols[i]);
   }
-  add(symbolTable, symbols);
+  
   ArmLines *armLines = initArmLines();
 
   FILE *armFile = fopen(argv[1], "r");
