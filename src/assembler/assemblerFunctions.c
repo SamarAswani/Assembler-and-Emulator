@@ -1,7 +1,6 @@
 #include "assemblerFunctions.h"
-#include "constants.h"
-#include "loadArmLines.h"
-#include "symbolTable.h"
+#include "../emulator/instruction.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -292,7 +291,7 @@ word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
     return lineReturn;
 }
 
-void firstPass(FILE *assemblyFile, SymbolTable *table, File *lines) {
+void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines) {
     char line[MAX_LINE_SIZE];
     while (fgets(line, MAX_LINE_SIZE, assemblyFile) != NULL) {
         bool isLabel = false;

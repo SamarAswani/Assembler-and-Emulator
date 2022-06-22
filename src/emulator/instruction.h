@@ -1,5 +1,5 @@
-#ifndef INSTUCTION
-#define INSTUCTION
+#ifndef INSTRUCTION
+#define INSTRUCTION
 
 #define WORD_SIZE 32
 
