@@ -42,7 +42,7 @@ word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
       acc = 1 << ACC_SHIFT;
     }
 
-    return MULT_START | acc | rd | rn | rs | MULT | rm;
+    return MULT_START | acc | rd | rn | rs | MULTIPLY | rm;
 }
 
 word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
@@ -71,6 +71,66 @@ word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     return cond | BRANCH | offset;
 }
 
+word assembleDPI(Symbol *symbolTable, Instruction instruction) {
+    word opcode = instruction.mnemonic;
+    word rd = 0;
+    char *imm;
+    word s = 0;
+    word rn = 0;
+    char **op2;
+    unsigned int args;
+    word i;
+    word operand2;
+
+    if (opcode == ANDEQ) {
+      return 0x00000000;
+    } else if (opcode == LSL_2) {
+      opcode = MOV;
+      char *rdTemp = instruction.operands[0];
+      rd = atoi(++instruction.operands[0]);
+      imm = instruction.operands[0];
+      char *operands[DEFAULT_ARGS] = {rdTemp, "lsl", instruction.operands[1]};
+      op2 = operands;
+      args = DEFAULT_ARGS;
+    } else if (opcode == MOV) {
+      rd = atoi(++instruction.operands[0]);
+      imm = instruction.operands[1];
+      op2 = instruction.operands + 1;
+      args = instruction.opCount - 1;
+    } else if (opcode == TST || opcode == CMP || opcode == TEQ) { 
+      imm = instruction.operands[1];
+      rn = atoi(++instruction.operands[0]);
+      op2 = instruction.operands + 1;
+      args = instruction.opCount - 1;
+      s=1;
+    } else {
+      rd = atoi(++instruction.operands[0]);
+      rn = atoi(++instruction.operands[1]);
+      imm = instruction.operands[2];
+      op2 = instruction.operands + 2;
+      args = instruction.opCount - 2;
+    }
+
+    opcode = opcode << DPI_OPCODE_SHIFT;
+    s = s << SET_SHIFT;
+    rn = rn << DPI_RN_SHIFT;
+    rd = rd << DPI_RD_SHIFT;
+
+    if (imm[0] == '#' || imm[0] == '=') {
+      i = 1 << DPI_I_SHIFT;
+    } else {
+      i = 0;
+    }
+
+    if (op2[0][0] == '#' || op2[0][0] == '=') {
+      // immediate
+    } else {
+      // register
+    }
+
+    return DPI_START | i | opcode | s | rn | rd | operand2;
+}
+
 word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
     char *other = NULL;
     char *lineTemp = strptr(line);
@@ -90,4 +150,4 @@ word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
       token = strtok_r(NULL, " ,", &other);
     }
   }
-}   
+}
