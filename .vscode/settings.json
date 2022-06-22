@@ -16,6 +16,7 @@
         "type_traits": "c",
         "vector": "c",
         "array": "c",
-        "utility": "c"
+        "utility": "c",
+        "stdlib.h": "c"
     }
 }

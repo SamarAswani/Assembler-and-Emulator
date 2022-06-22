@@ -50,19 +50,14 @@ static word *SDTIparser(const char* string) {
         printf("Error: NULL pointer.");
         exit(0);
     }
-//    separator
     char *sep = ", ";
-//    remove initial bracket
     char *stringTemp = strptr(string + 1);
-//    rn
     char *token = strtok(stringTemp, sep);
     if (token[0] == 'r') {
-//        for constant or register
         (++token);
     }
     addressRegExp[0] = immediateVal(token);
     char* secondToken = strtok(NULL, sep);
-//    checking of existence of expression
     if (secondToken != NULL) {
         addressRegExp[3] = token[0] == 'r' ? 1 : 0;
         addressRegExp[2] = (++token)[0] == '-' ? 0 : 1;
@@ -254,7 +249,7 @@ word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
   return lineReturn;
 }
 
-void secondPassLines(File *file, SymbolTable *symbolTable, FILE *out) {
+void secondPassLines(ArmLines *file, SymbolTable *symbolTable, FILE *out) {
   for (int line = 0; line < file->count; line++) {
     word lineWrite = parseLine(symbolTable, file->lines[line], line * WORD_TO_BYTE);
     fwrite(&lineWrite, sizeof(word), 1, out);

@@ -10,7 +10,7 @@ typedef struct {
   char **lines;
   unsigned int count;
   unsigned int max;
-} File;
+} ArmLines;
 
 extern char *strptr(const char *str);
 
