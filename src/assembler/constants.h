@@ -9,13 +9,12 @@
 #define ALWAYS 0xE
 #define ARM_OFFSET 8
 
-#define MULT 0x90
-#define MULT_START (ALWAYS << COND_SHIFT)
+#define START (ALWAYS << COND_SHIFT)
 
-#define BRANCH_START (ALWAYS << COND_SHIFT)
+#define MULT 0x90
+
 #define BRANCH 0x0A000000
 
-#define SDTI_START (ALWAYS << COND_SHIFT)
 #define SDTI 0x4000000
 #define SDTI_BOUND 0xFF
 #define POST_IDX 3

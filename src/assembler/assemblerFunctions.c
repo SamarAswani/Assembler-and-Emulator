@@ -43,7 +43,7 @@ word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
       acc = 1 << ACC_SHIFT;
     }
 
-    return MULT_START | acc | rd | rn | rs | MULT | rm;
+    return START | acc | rd | rn | rs | MULT | rm;
 }
 
 static word *SDTIparser(const char* string) {
@@ -84,36 +84,18 @@ static STDIAddressType getSTDIAddressType(char **operands, unsigned int opCount)
     return NUMERIC_CONST;
 }
 word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
-//    word cond = lookup(symbolTable, ++instruction.opcode, 2) << COND_SHIFT;
-    word i = 0;
-
     STDIAddressType addressType = getSTDIAddressType(instruction.operands, instruction.opCount );
-    if (addressType == POST_IDX_EXP) {
-        word p = 1 << SDTI_P_SHIFT;
-    } else {
-        word p = 0;
-    }
-
+//  var names inline with spec see for definitions of each
+    word i = 0;
+    word p = (addressType == POST_IDX_EXP) ? 0 : (1 << SDTI_P_SHIFT);
     word u = 1 << SDTI_U_SHIFT;
-
-    if (instruction.mnemonic == LDR) {
-       word l = 1 << SDTI_L_SHIFT;
-    } else {
-        word l = 0;
-    }
-
+    word l = (instruction.mnemonic == LDR) ? (1 << SDTI_L_SHIFT) : 0;
     word* addresses = SDTIparser(instruction.operands[1])
     word rn = addresses[0] << SDTI_RN_SHIFT;
-
     word rd = atoi(++instruction.operands[0]) << SDTI_RD_SHIFT;
-
     word offset;
 
     switch (addressType) {
-        case POST_IDX_EXP:
-            offset = atoi((++instruction.operands[2]));
-//            could add optional post immediate offset
-            break;
         case PRE_IDX:
             offset = 0;
             break;
@@ -121,6 +103,10 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
             u = addresses[2] << SDTI_U_SHIFT;
             offset = addresses[1];
 //            could add optional
+        case POST_IDX_EXP:
+            offset = atoi((++instruction.operands[2]));
+//            could add optional post immediate offset
+            break;
         case NUMERIC_CONST:
             if (immediateVal(input.fields[1] + 1) <= SDTI_BOUND) {
                 free(addresses);
@@ -138,16 +124,14 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
         default:
             throwPrint("Unexpected SDTI addressing method");
     }
-
     free(addresses);
-
-    return SDTI_START | SDTI | i | p | u | l | rn | rd | offset;
+    return START | SDTI | i | p | u | l | rn | rd | offset;
 }
 
 word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     word cond;
     if (instruction.mnemonic == B) {
-      cond = BRANCH_START;
+      cond = START;
     } else {
       cond = lookup(condTable, ++instruction.opcode, 7) << COND_SHIFT;
     }
