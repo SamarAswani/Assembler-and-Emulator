@@ -299,13 +299,16 @@ void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines) {
             if (line[i] == ':') {
                 // Current line is a label
                 isLabel = true;
-                Symbol label = createLabelSymbol(strtok(line, ":"), lines->count * WORD_TO_BYTE);
+                Symbol *label = createLabelSymbol(strtok(line, ":"), lines->count * WORD_TO_BYTE);
                 add(table, label);
                 break;
             } 
+        }
 
-            if (line[i] == '#') {
-                // Current line contains an immediate value
+        if (!isLabel) {
+            char *lineNoNewLine = strtok(line, "\n");
+            if (lineNoNewLine != NULL) {
+                addLine(lines, lineNoNewLine); 
             }
         }
     }
