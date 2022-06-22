@@ -11,9 +11,16 @@
 
 #include <stdio.h>
 
-typedef struct {
-  char *key;
-  word value;
+typedef enum SDTIAddressType {
+    NUMERIC_CONST, 
+    PRE_IDX, 
+    PRE_IDX_EXP, 
+    POST_IDX_EXP
+} SDTIAddressType;
+
+typedef struct tableStruct {
+    char *key;
+    word value;
 } tableStruct;
 
 typedef struct Instruction {
@@ -23,7 +30,6 @@ typedef struct Instruction {
     unsigned int opCount;
     word address;
 } Instruction;
-
 
 static const tableStruct condition[] = {{"eq", EQ}, 
                                         {"ne", NE}, 
@@ -58,5 +64,15 @@ static const tableStruct opcode[] = {{"and", AND},
                                           {"bgt", BGT}, 
                                           {"ble", BLE}, 
                                           {"b", B}};
+
+int lookup(const tableStruct table[], const char *key, const int size);
+
+unsigned int immediateVal(char *operand);
+
+word assembleMultiply(SymbolTable *symbolTable, Instruction instruction);
+
+word assembleBranch(SymbolTable *symbolTable, Instruction instruction);
+
+word tokenizeLine(SymbolTable *symbolTable, const char *line, word address);
 
 #endif

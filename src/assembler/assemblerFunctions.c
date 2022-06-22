@@ -3,6 +3,7 @@
 #include "loadArmLines.h"
 #include "symbolTable.h"
 #include "../emulator/instruction.h"
+#include "../utility.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -42,13 +43,51 @@ word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
       acc = 1 << ACC_SHIFT;
     }
 
-    return MULT_START | acc | rd | rn | rs | MULTIPLY | rm;
+    return START | acc | rd | rn | rs | MULT | rm;
+}
+
+static word *SDTIparser(const char* string) {
+    word *addressRegExp = malloc(sizeof(word*) *4);
+    ptrCheck(addressRegExp);
+//    separator
+    char *sep = ", ";
+//    remove initial bracket
+    char *stringTemp = strptr(string + 1);
+//    rn
+    char *token = strtok(stringTemp, sep);
+    if (token[0] == 'r') {
+//        for constant or register
+        (++token);
+    }
+    addressRegExp[0] = immediateVal(token);
+    char* secondToken = strtok(NULL, sep);
+//    checking of existence of expression
+    if (secondToken != NULL) {
+        addressRegExp[3] = token[0] == 'r' ? 1 : 0;
+        addressRegExp[2] = (++token)[0] == '-' ? 0 : 1;
+        addressRegExp[1] = immediateVal(secondToken);
+    }
+    free(stringTemp);
+    return addressRegExp;
+}
+
+static SDTIAddressType getSDTIAddressType(char **operands, unsigned int opCount) {
+    if (opCount == POST_IDX) {
+        return POST_IDX_EXP;
+    }
+    if (strstr(operands[1], ",")) {
+        return PRE_IDX_EXP;
+    }
+    if (strstr(operands[1], "r")) {
+        return PRE_IDX;
+    }
+    return NUMERIC_CONST;
 }
 
 word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     word cond;
     if (instruction.mnemonic == B) {
-      cond = BRANCH_START;
+      cond = START;
     } else {
       cond = lookup(condition, ++instruction.opcode, 7) << COND_SHIFT;
     }
@@ -62,7 +101,7 @@ word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
       Symbol *symbol = get(symbolTable, line);
       if (symbol == NULL) {
         printf("Error: Symbol %s not found\n", line);
-        exit(1);
+        exit(0);
       }
       newAddress = symbol->value.address;
     }
@@ -97,7 +136,7 @@ word assembleDPI(Symbol *symbolTable, Instruction instruction) {
       imm = instruction.operands[1];
       op2 = instruction.operands + 1;
       args = instruction.opCount - 1;
-    } else if (opcode == TST || opcode == CMP || opcode == TEQ) { 
+    } else if (opcode == TST || opcode == CMP || opcode == TEQ) {
       imm = instruction.operands[1];
       rn = atoi(++instruction.operands[0]);
       op2 = instruction.operands + 1;
@@ -131,6 +170,52 @@ word assembleDPI(Symbol *symbolTable, Instruction instruction) {
     return DPI_START | i | opcode | s | rn | rd | operand2;
 }
 
+word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
+    SDTIAddressType addressType = getSDTIAddressType(instruction.operands, instruction.opCount );
+//  var names inline with spec see for definitions of each
+    word i = 0;
+    word p = (addressType == POST_IDX_EXP) ? 0 : (1 << SDTI_P_SHIFT);
+    word u = 1 << SDTI_U_SHIFT;
+    word l = (instruction.mnemonic == LDR) ? (1 << SDTI_L_SHIFT) : 0;
+    word* addresses = SDTIparser(instruction.operands[1]);
+    word rn = addresses[0] << SDTI_RN_SHIFT;
+    word rd = atoi(++instruction.operands[0]) << SDTI_RD_SHIFT;
+    word offset;
+
+    switch (addressType) {
+        case PRE_IDX:
+            offset = 0;
+            break;
+        case PRE_IDX_EXP:
+            u = addresses[2] << SDTI_U_SHIFT;
+            offset = addresses[1];
+//            could add optional
+        case POST_IDX_EXP:
+            offset = atoi((++instruction.operands[2]));
+//            could add optional post immediate offset
+            break;
+        case NUMERIC_CONST:
+            if (immediateVal(instruction.operands[1] + 1) <= SDTI_BOUND) {
+                free(addresses);
+                instruction.opcode = "mov";
+                instruction.mnemonic = MOV;
+                return assembleDPI(symbolTable, instruction);
+            } else {
+                // offset
+                offset = lookup(symbolTable, instruction.operands[1], 2)->value.address - ARM_OFFSET;
+                offset -= instruction.address;
+                // Base register Rn
+                rn = PC << SDTI_RN_SHIFT;
+            }
+            break;
+        default:
+            throwPrint("Unexpected SDTI addressing method");
+    }
+    free(addresses);
+    return START | SDTI | i | p | u | l | rn | rd | offset;
+}
+
+
 word assemble(SymbolTable *symbolTable, Instruction instruction) {
   Symbol *symbol = getSymbol(symbolTable, instruction.opcode);
   if (symbol == NULL) {
@@ -158,18 +243,18 @@ word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
             continue;
         }
     tokens[count++] = token;
-    if (other[0] == '[') { 
+    if (other[0] == '[') {
       token = strtok_r(other, "]", &other);
     } else {
       token = strtok_r(NULL, " ,", &other);
     }
   }
-  
+
   Instruction instruction = {tokens[0], lookup(opcode, SYMBOLS, tokens[0]), tokens + 1, count-1, address};
   word lineReturn = assemble(symbolTable, instruction);
   free(lineTemp);
   return lineReturn;
-} 
+}
 
 void secondPassLines(File *file, SymbolTable *symbolTable, FILE *out) {
   for (int line = 0; line < file->count; line++) {

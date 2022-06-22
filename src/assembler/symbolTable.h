@@ -5,17 +5,12 @@
 #include <string.h>
 
 #include "../definitions.h"
+#include "assemblerFunctions.h"
 
 
 typedef enum { LABEL, OPCODE } SymbolType;
 
-typedef struct Instruction {
-    char *opcode;
-    int mnemonic;
-    char **operands;
-    unsigned int opCount;
-    word address;
-} Instruction;
+struct SymbolTable;
 
 typedef struct Symbol {
     char *key;            // Opcode mnemonic or label
