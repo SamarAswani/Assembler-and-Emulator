@@ -21,14 +21,6 @@ typedef struct tableStruct {
     word value;
 } tableStruct;
 
-typedef struct Instruction {
-    char *opcode;
-    int mnemonic;
-    char **operands;
-    unsigned int opCount;
-    word address;
-} Instruction;
-
 static const tableStruct condition[] = {{"eq", EQ}, 
                                         {"ne", NE}, 
                                         {"ge", GE},
