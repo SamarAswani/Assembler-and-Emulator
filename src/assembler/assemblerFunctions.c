@@ -1,8 +1,6 @@
 #include "assemblerFunctions.h"
-#include "constants.h"
-#include "loadArmLines.h"
-#include "symbolTable.h"
 #include "../emulator/instruction.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

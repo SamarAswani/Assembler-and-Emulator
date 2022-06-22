@@ -9,10 +9,15 @@
 
 
 typedef enum { LABEL, OPCODE } SymbolType;
+typedef struct SymbolTable SymbolTable;
+typedef struct Symbol Symbol;
 
-struct SymbolTable;
+// SymbolTable ADT implemented as a binary tree map.
+struct SymbolTable {
+    Symbol *root;
+};
 
-typedef struct Symbol {
+struct Symbol {
     char *key;            // Opcode mnemonic or label
     SymbolType type;
     union {
@@ -22,12 +27,7 @@ typedef struct Symbol {
     } value;
     struct Symbol *left;
     struct Symbol *right;
-} Symbol;
-
-// SymbolTable ADT implemented as a binary tree map.
-typedef struct SymbolTable {
-    Symbol *root;
-} SymbolTable;
+};
 
 SymbolTable *createSymbolTable(void);
 Symbol *createLabelSymbol(const char *key, word value);
