@@ -131,16 +131,16 @@ word assembleDPI(Symbol *symbolTable, Instruction instruction) {
     return DPI_START | i | opcode | s | rn | rd | operand2;
 }
 
-word assemble(SymbolTable *symbolTable, Instruction instructionIn) {
-  Symbol *symbol = getSymbol(symbolTable, instructionIn.opcode);
+word assemble(SymbolTable *symbolTable, Instruction instruction) {
+  Symbol *symbol = getSymbol(symbolTable, instruction.opcode);
   if (symbol == NULL) {
     return 0;
   }
   word lineReturn;
   if (symbol->type == OPCODE) {
-    lineReturn = symbol->value.assembleFunction(symbolTable, instructionIn);
+    lineReturn = symbol->value.assembleFunction(symbolTable, instruction);
   } else {
-    lineReturn = immediateVal(instructionIn.opcode + 1);
+    lineReturn = immediateVal(instruction.opcode + 1);
   }
   return lineReturn;
 }
@@ -171,14 +171,9 @@ word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
   return lineReturn;
 } 
 
-
-
 void secondPassLines(File *file, SymbolTable *symbolTable, FILE *out) {
   for (int line = 0; line < file->count; line++) {
     word lineWrite = parseLine(symbolTable, file->lines[line], line * WORD_TO_BYTE);
     fwrite(&lineWrite, sizeof(word), 1, out);
   }
 }
-
-
-
