@@ -13,11 +13,11 @@ char *strptr(const char *str) {
     return ptr;
 }
 
-void resize(File *file){
+void resize(ArmLines *file){
     file->lines = realloc(file->lines, file->max *= 2);
 }
 
-void addLine(File *file, char *line) {
+void addLine(ArmLines *file, char *line) {
     if (file->count == file->max) {
       resize(file);
     }
@@ -25,27 +25,27 @@ void addLine(File *file, char *line) {
     file->lines[file->count] = strptr(line);
 }
 
-void addLines(File *file, char **lines, unsigned int n) {
+void addLines(ArmLines *file, char **lines, unsigned int n) {
     for (int i = 0; i < n; i++) {
       addLine(file, lines[i]);
     }
 }
 
-void printLines(File *file) {
+void printLines(ArmLines *file) {
     for (int i = 1; i <= file->count; i++) {
       printf("%s\n", file->lines[i]);
     }
 }
 
-File *initArmLines(void) {
-    File *file = malloc(sizeof(*file));
+ArmLines *initArmLines(void) {
+    ArmLines *file = malloc(sizeof(*file));
     file->lines = malloc(sizeof(*file->lines) * INITIAL_SIZE);
     file->max = INITIAL_SIZE;
     file->count = 0;
     return file;
 }
 
-void freeLines(File *file) {
+void freeLines(ArmLines *file) {
     for (int i = 0; i < file->count; i++) {
       free(file->lines[i]);
     }

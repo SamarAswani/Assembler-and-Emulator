@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv) {
   SymbolTable *symbolTable = createSymbolTable();
-  Symbol **symbols = createSymbols(SYMBOLS, sizeof(*symbols));
+  Symbol **symbols = createLabelSymbol(SYMBOLS, sizeof(*symbols));
   Symbol definedSymbols[SYMBOLS] = {
       {strptr("add"), OPCODE, 0, .value.assembleFunction = assembleDPI},
       {strptr("sub"), OPCODE, 0, .value.assembleFunction = assembleDPI},
@@ -38,20 +38,20 @@ int main(int argc, char **argv) {
   for (int i = 0; i < SYMBOLS; i++) {
     symbols[i][0] = definedSymbols[i];
   }
-  addSymbols(symbolTable, symbols, SYMBOLS);
-  ArmLines *armLines = newFileLines();
+  add(symbolTable, symbols);
+  ArmLines *armLines = initArmLines();
 
   FILE *armFile = fopen(argv[1], "r");
   scanFile(armFile, symbolTable, armLines);
   fclose(armFile);
 
   FILE *output = fopen(argv[2], "wb");
-  parseLines(armLines, symbolTable, output);
+  secondPassLines(armLines, symbolTable, output);
   fclose(output);
 
-  freeSymbols(symbols, SYMBOLS);
-  freeTable(symbolTable);
-  freeFileLines(armLines);
+  freeSymbol(symbols);
+  freeSymbolTable(symbolTable);
+  freeLines(armLines);
 
   return EXIT_SUCCESS;
 }
