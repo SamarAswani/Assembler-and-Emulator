@@ -7,7 +7,7 @@ symbolTable.o: symbolTable.h ../definitions.h
 
 loadArmLines.o: loadArmLines.h symbolTable.h constants.h ../definitions.h
 
-assemblerFunctions.o: assemblerFunctions.h loadArmLines.h symbolTable.h constants.h ../definitions.h ../emulator/instruction.h
+assemblerFunctions.o: assemblerFunctions.h symbolTable.h loadArmLines.h constants.h ../definitions.h ../emulator/instruction.h
 
 clean:
 	rm -f $(wildcard *.o)

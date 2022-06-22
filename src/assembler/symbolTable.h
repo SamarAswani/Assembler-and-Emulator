@@ -7,7 +7,6 @@
 #include "../definitions.h"
 #include "assemblerFunctions.h"
 
-
 typedef enum { LABEL, OPCODE } SymbolType;
 typedef struct SymbolTable SymbolTable;
 typedef struct Symbol Symbol;
@@ -34,6 +33,5 @@ Symbol *createLabelSymbol(const char *key, word value);
 void freeSymbolTable(SymbolTable *table);
 void add(SymbolTable *table, Symbol *entry);
 Symbol *get(SymbolTable *table, const char *key);
-
 
 #endif
