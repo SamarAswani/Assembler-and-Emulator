@@ -21,6 +21,8 @@
         "utility": "c",
         "variant": "c",
         "string.h": "c",
-        "utility.h": "c"
+        "utility.h": "c",
+        "assemblerfunctions.h": "c",
+        "symboltable.h": "c"
     }
 }

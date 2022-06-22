@@ -5,11 +5,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "symbolTable.h"
 #include "constants.h"
 #include "loadArmLines.h"
-#include "symbolTable.h"
-
-#include <stdio.h>
 
 typedef enum SDTIAddressType {
     NUMERIC_CONST, 
@@ -65,20 +63,20 @@ static const tableStruct opcode[] = {{"and", AND},
                                           {"ble", BLE}, 
                                           {"b", B}};
 
-int lookup(const tableStruct table[], const char *key, const int size);
+extern int lookup(const tableStruct table[], const char *key, const int size);
 
-unsigned int immediateVal(char *operand);
+extern unsigned int immediateVal(char *operand);
 
-word assembleMultiply(SymbolTable *symbolTable, Instruction instruction);
+extern word assembleMultiply(SymbolTable *symbolTable, Instruction instruction);
 
-word assembleBranch(SymbolTable *symbolTable, Instruction instruction);
+extern word assembleBranch(SymbolTable *symbolTable, Instruction instruction);
 
-word assembleDPI(SymbolTable *symbolTable, Instruction instruction);
+extern word assembleDPI(SymbolTable *symbolTable, Instruction instruction);
 
-word assembleSDTI(SymbolTable *symbolTable, Instruction instruction);
+extern word assembleSDTI(SymbolTable *symbolTable, Instruction instruction);
 
-word tokenizeLine(SymbolTable *symbolTable, const char *line, word address);
+extern word tokenizeLine(SymbolTable *symbolTable, const char *line, word address);
 
-void firstPass(FILE *assemblyFile, SymbolTable *table, File *lines);
+extern void firstPass(FILE *assemblyFile, SymbolTable *table, File *lines);
 
 #endif
