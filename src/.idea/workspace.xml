@@ -17,9 +17,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9121d903-ec89-4919-893d-cf47ff852378" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/utility.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utility.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/assembler/assemblerFunctions.c" beforeDir="false" afterPath="$PROJECT_DIR$/assembler/assemblerFunctions.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assembler/assemblerFunctions.h" beforeDir="false" afterPath="$PROJECT_DIR$/assembler/assemblerFunctions.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assembler/constants.h" beforeDir="false" afterPath="$PROJECT_DIR$/assembler/constants.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,7 +103,7 @@
       <workItem from="1655600417249" duration="2000" />
       <workItem from="1655600429002" duration="16000" />
       <workItem from="1655600452935" duration="8681000" />
-      <workItem from="1655815653034" duration="7131000" />
+      <workItem from="1655815653034" duration="8576000" />
     </task>
     <servers />
   </component>
