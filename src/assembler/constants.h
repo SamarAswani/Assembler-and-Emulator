@@ -22,7 +22,6 @@
 #define BRANCH 0x0A000000
 
 #define SET_SHIFT (20)
-#define DPI_START (ALWAYS << COND_SHIFT)
 
 #define SDT 0x4000000
 #define SDTI_BOUND 0xFF

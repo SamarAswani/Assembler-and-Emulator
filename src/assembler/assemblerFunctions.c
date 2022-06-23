@@ -84,42 +84,6 @@ word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
     return START | acc | rd | rn | rs | MULTIPLY | rm;
 }
 
-static word *SDTIparser(char* string) {
-    word *addressRegExp = malloc(sizeof(word*) *4);
-    if (addressRegExp == NULL) {
-        printf("Error: NULL pointer.");
-        exit(0);
-    }
-    char *sep = ", ";
-    char *stringTemp = strptr(string + 1);
-    char *token = strtok(stringTemp, sep);
-    if (token[0] == 'r') {
-        (++token);
-    }
-    addressRegExp[0] = immediateVal(token);
-    char* secondToken = strtok(NULL, sep);
-    if (secondToken != NULL) {
-        addressRegExp[3] = token[0] == 'r' ? 1 : 0;
-        addressRegExp[2] = (++token)[0] == '-' ? 0 : 1;
-        addressRegExp[1] = immediateVal(secondToken);
-    }
-    free(stringTemp);
-    return addressRegExp;
-}
-
-static SDTIAddressType getSDTIAddressType(char **operands, unsigned int opCount) {
-    if (opCount == POST_IDX) {
-        return POST_IDX_EXP;
-    }
-    if (strstr(operands[1], ",")) {
-        return PRE_IDX_EXP;
-    }
-    if (strstr(operands[1], "r")) {
-        return PRE_IDX;
-    }
-    return NUMERIC_CONST;
-}
-
 word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     word cond;
     if (instruction.mnemonic == B) {
@@ -211,7 +175,43 @@ word assembleDPI(SymbolTable *symbolTable, Instruction instruction) {
       operand2 = parseRegister(op2,args);
     }
 
-    return DPI_START | i | opcode | s | rn | rd | operand2;
+    return START | i | opcode | s | rn | rd | operand2;
+}
+
+static word *SDTIparser(char* string) {
+    word *addressRegExp = malloc(sizeof(word*) *4);
+    if (addressRegExp == NULL) {
+        printf("Error: NULL pointer.");
+        exit(0);
+    }
+    char *sep = ", ";
+    char *stringTemp = strptr(string + 1);
+    char *token = strtok(stringTemp, sep);
+    if (token[0] == 'r') {
+        (++token);
+    }
+    addressRegExp[0] = immediateVal(token);
+    char* secondToken = strtok(NULL, sep);
+    if (secondToken != NULL) {
+        addressRegExp[3] = token[0] == 'r' ? 1 : 0;
+        addressRegExp[2] = (++token)[0] == '-' ? 0 : 1;
+        addressRegExp[1] = immediateVal(secondToken);
+    }
+    free(stringTemp);
+    return addressRegExp;
+}
+
+static SDTIAddressType getSDTIAddressType(char **operands, unsigned int opCount) {
+    if (opCount == POST_IDX) {
+        return POST_IDX_EXP;
+    }
+    if (strstr(operands[1], ",")) {
+        return PRE_IDX_EXP;
+    }
+    if (strstr(operands[1], "r")) {
+        return PRE_IDX;
+    }
+    return NUMERIC_CONST;
 }
 
 word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
@@ -231,8 +231,10 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
             break;
         case PRE_IDX_EXP:
             u = addresses[2] << SDTI_U_SHIFT;
+            i = addresses[3] << SDTI_I_SHIFT;
             offset = addresses[1];
         case POST_IDX_EXP:
+            i = IS_IMMEDIATE(instruction.operands[2]) ? 0 : 1 << SDTI_I_SHIFT;
             offset = atoi((++instruction.operands[2]));
             break;
         case NUMERIC_CONST:
@@ -307,13 +309,13 @@ void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines) {
                 Symbol *label = createLabelSymbol(strtok(line, ":"), lines->count * WORD_TO_BYTE);
                 add(table, label);
                 break;
-            } 
+            }
         }
 
         if (!isLabel) {
             char *lineNoNewLine = strtok(line, "\n");
             if (lineNoNewLine != NULL) {
-                addLine(lines, lineNoNewLine); 
+                addLine(lines, lineNoNewLine);
             }
         }
     }
