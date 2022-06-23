@@ -16,13 +16,13 @@ int lookup(const tableStruct table[], const char *key, const int size) {
 }
 
 unsigned int immediateVal(char *operand) {
+    if (operand[0] == '-') {
+      ++operand;
+    }
     if (strlen(operand) >= 3) {
       if (operand[0] == '0' && operand[1] == 'x') {
         return (unsigned int) strtol(operand, NULL, HEX);
       }
-    }
-    if (operand[0] == '-') {
-      ++operand;
     }
     return (unsigned int) atoi(operand);
 }
