@@ -28,7 +28,6 @@ void freeSymbol(Symbol *symbol) {
 
     freeSymbol(symbol->left);
     freeSymbol(symbol->right);
-    free(symbol->key);
     free(symbol);
 }
 

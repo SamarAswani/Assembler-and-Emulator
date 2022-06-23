@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
   fclose(output);
 
   // freeSymbol(symbols);
-  freeSymbolTable(symbolTable);
+  // freeSymbolTable(symbolTable);
   freeLines(armLines);
 
   return EXIT_SUCCESS;

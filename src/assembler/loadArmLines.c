@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *strptr(char *str) {
+char *strptr(const char *str) {
     char *ptr = malloc(strlen(str) + 1);
     strcpy(ptr, str);
     return ptr;
@@ -17,15 +17,14 @@ void resize(ArmLines *file){
     file->lines = realloc(file->lines, file->max *= 2);
 }
 
-void addLine(ArmLines *file, char *line) {
+void addLine(ArmLines *file, const char *line) {
     if (file->count == file->max) {
       resize(file);
     }
-    file->count++;
-    file->lines[file->count] = strptr(line);
+    file->lines[file->count++] = strptr(line);
 }
 
-void addLines(ArmLines *file, char **lines, unsigned int n) {
+void addLines(ArmLines *file, const char **lines, unsigned int n) {
     for (int i = 0; i < n; i++) {
       addLine(file, lines[i]);
     }
