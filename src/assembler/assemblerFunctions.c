@@ -251,7 +251,7 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
             break;
         default:
             printf("Error: Unexpected SDTI addressing method");
-            exit(0);
+            exit(7);
     }
     free(addresses);
     return START | SDT | i | p | u | l | rn | rd | offset;
@@ -300,6 +300,7 @@ word tokenizeLine(SymbolTable *symbolTable, char *line, word address) {
 
 void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines) {
     char line[MAX_LINE_SIZE];
+    ArmLines *expressions = initArmLines();
     while (fgets(line, MAX_LINE_SIZE, assemblyFile) != NULL) {
         bool isLabel = false;
         for (int i = 0; line[i] != '\0'; i ++) {
@@ -310,6 +311,14 @@ void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines) {
                 add(table, label);
                 break;
             }
+
+            if (line[i] == '=') {
+                char *expression = strtok(line + i - 1, " ],\n");
+                if (immediateVal(expression + 1) > MAX) {
+                    addLine(expressions, expression);
+                }
+                break;
+            }
         }
 
         if (!isLabel) {
@@ -318,6 +327,12 @@ void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines) {
                 addLine(lines, lineNoNewLine);
             }
         }
+    }
+
+    for (int i = 0; i < expressions->count; i ++) {
+        word address = lines->count + i * WORD_TO_BYTE;
+        Symbol *expression = createLabelSymbol(expressions->lines[i], address);
+        add(table, expression);
     }
 }
 
