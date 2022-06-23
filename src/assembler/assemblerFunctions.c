@@ -58,7 +58,7 @@ static word parseRegister(char **op2, unsigned int args) {
       return rm;
     }
     Shift type = lookup(shift, op2[1], 4);
-    if (op2[2][0] == '#') {
+    if (op2[2][0] == '#' || op2[2][0] == '=') {
       return (immediateVal(++op2[2]) << SHIFT_NUM) | (type << SHIFT_TYPE_ASS) | rm;
     }
     unsigned int rs = atoi(++op2[2]);
@@ -84,6 +84,42 @@ word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
     return START | acc | rd | rn | rs | MULTIPLY | rm;
 }
 
+static word *SDTIparser(char* string) {
+    word *addressRegExp = malloc(sizeof(word*) *4);
+    if (addressRegExp == NULL) {
+        printf("Error: NULL pointer.");
+        exit(0);
+    }
+    char *sep = ", ";
+    char *stringTemp = strptr(string + 1);
+    char *token = strtok(stringTemp, sep);
+    if (token[0] == 'r') {
+        (++token);
+    }
+    addressRegExp[0] = immediateVal(token);
+    char* secondToken = strtok(NULL, sep);
+    if (secondToken != NULL) {
+        addressRegExp[3] = token[0] == 'r' ? 1 : 0;
+        addressRegExp[2] = (++token)[0] == '-' ? 0 : 1;
+        addressRegExp[1] = immediateVal(secondToken);
+    }
+    free(stringTemp);
+    return addressRegExp;
+}
+
+static SDTIAddressType getSDTIAddressType(char **operands, unsigned int opCount) {
+    if (opCount == POST_IDX) {
+        return POST_IDX_EXP;
+    }
+    if (strstr(operands[1], ",")) {
+        return PRE_IDX_EXP;
+    }
+    if (strstr(operands[1], "r")) {
+        return PRE_IDX;
+    }
+    return NUMERIC_CONST;
+}
+
 word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     word cond;
     if (instruction.mnemonic == B) {
@@ -95,7 +131,7 @@ word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     char *line = instruction.operands[0];
 
     word newAddress;
-    if (line[0] == '#') {
+    if (line[0] == '#' || line[0]=='=') {
       newAddress = atoi(++line);
     } else {
       Symbol *symbol = get(symbolTable, line);
@@ -155,63 +191,27 @@ word assembleDPI(SymbolTable *symbolTable, Instruction instruction) {
     rn = rn << DPI_RN_SHIFT;
     rd = rd << DPI_RD_SHIFT;
 
-    if (imm[0] == '#') {
+    if (imm[0] == '#' || imm[0] == '=') {
       i = 1 << DPI_I_SHIFT;
     } else {
       i = 0;
     }
 
 
-    if (op2[0][0] == '#') {
-      word imm = (word)immediateVal(++op2[0]);
+    if (op2[0][0] == '#' || op2[0][0] == '=') {
+      word imm = (word) immediateVal(++op2[0]);
       if (imm > MAX) {
         operand2 = rotateImm(imm);
       }
-      //not sure about this
       else {
         operand2 = imm;
       }
-    } else {
+    }
+    else {
       operand2 = parseRegister(op2,args);
     }
 
     return START | i | opcode | s | rn | rd | operand2;
-}
-
-static word *SDTIparser(char* string) {
-    word *addressRegExp = malloc(sizeof(word*) *4);
-    if (addressRegExp == NULL) {
-        printf("Error: NULL pointer.");
-        exit(0);
-    }
-    char *sep = ", ";
-    char *stringTemp = strptr(string + 1);
-    char *token = strtok(stringTemp, sep);
-    if (token[0] == 'r') {
-        (++token);
-    }
-    addressRegExp[0] = immediateVal(token);
-    char* secondToken = strtok(NULL, sep);
-    if (secondToken != NULL) {
-        addressRegExp[3] = token[0] == 'r' ? 1 : 0;
-        addressRegExp[2] = (++token)[0] == '-' ? 0 : 1;
-        addressRegExp[1] = immediateVal(secondToken);
-    }
-    free(stringTemp);
-    return addressRegExp;
-}
-
-static SDTIAddressType getSDTIAddressType(char **operands, unsigned int opCount) {
-    if (opCount == POST_IDX) {
-        return POST_IDX_EXP;
-    }
-    if (strstr(operands[1], ",")) {
-        return PRE_IDX_EXP;
-    }
-    if (strstr(operands[1], "r")) {
-        return PRE_IDX;
-    }
-    return NUMERIC_CONST;
 }
 
 word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
@@ -231,10 +231,8 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
             break;
         case PRE_IDX_EXP:
             u = addresses[2] << SDTI_U_SHIFT;
-            i = addresses[3] << SDTI_I_SHIFT;
             offset = addresses[1];
         case POST_IDX_EXP:
-            i = (instruction.operands[2][0] == '#' || instruction.operands[2][0] == '=') ? 0 : 1 << SDTI_I_SHIFT;
             offset = atoi((++instruction.operands[2]));
             break;
         case NUMERIC_CONST:
@@ -324,7 +322,7 @@ void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines) {
         if (!isLabel) {
             char *lineNoNewLine = strtok(line, "\n");
             if (lineNoNewLine != NULL) {
-                addLine(lines, lineNoNewLine);
+                addLine(lines, lineNoNewLine); 
             }
         }
     }
