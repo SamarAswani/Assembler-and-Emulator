@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *strptr(const char *str) {
+char *strptr(char *str) {
     char *ptr = malloc(strlen(str) + 1);
     strcpy(ptr, str);
     return ptr;

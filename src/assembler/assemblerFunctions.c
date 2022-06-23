@@ -84,7 +84,7 @@ word assembleMultiply(SymbolTable *symbolTable, Instruction instruction) {
     return START | acc | rd | rn | rs | MULTIPLY | rm;
 }
 
-static word *SDTIparser(const char* string) {
+static word *SDTIparser(char* string) {
     word *addressRegExp = malloc(sizeof(word*) *4);
     if (addressRegExp == NULL) {
         printf("Error: NULL pointer.");
@@ -270,7 +270,7 @@ word assemble(SymbolTable *symbolTable, Instruction instruction) {
     return lineReturn;
 }
 
-word tokenizeLine(SymbolTable *symbolTable, const char *line, word address) {
+word tokenizeLine(SymbolTable *symbolTable, char *line, word address) {
     char *other = NULL;
     char *lineTemp = strptr(line);
 

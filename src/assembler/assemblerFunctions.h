@@ -67,7 +67,7 @@ extern word assembleDPI(SymbolTable *symbolTable, Instruction instruction);
 
 extern word assembleSDTI(SymbolTable *symbolTable, Instruction instruction);
 
-extern word tokenizeLine(SymbolTable *symbolTable, const char *line, word address);
+extern word tokenizeLine(SymbolTable *symbolTable, char *line, word address);
 
 extern void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines);
 
