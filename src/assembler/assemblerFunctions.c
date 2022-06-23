@@ -234,7 +234,7 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
             i = addresses[3] << SDTI_I_SHIFT;
             offset = addresses[1];
         case POST_IDX_EXP:
-            i = IS_IMMEDIATE(instruction.operands[2]) ? 0 : 1 << SDTI_I_SHIFT;
+            i = (instruction.operands[2][0] == '#' || instruction.operands[2][0] == '=') ? 0 : 1 << SDTI_I_SHIFT;
             offset = atoi((++instruction.operands[2]));
             break;
         case NUMERIC_CONST:
