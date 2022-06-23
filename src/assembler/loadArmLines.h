@@ -14,7 +14,7 @@ typedef struct {
 
 
 extern void addLine(ArmLines *file, const char *line);
-extern void addLines(ArmLines *file, const char **lines, unsigned int n);
+extern void addLines(ArmLines *file, char **lines, unsigned int n);
 extern ArmLines *initArmLines(void);
 extern char *strptr(const char *str);
 extern void freeLines(ArmLines *file);

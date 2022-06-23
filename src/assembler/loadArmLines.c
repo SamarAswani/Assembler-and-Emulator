@@ -24,7 +24,7 @@ void addLine(ArmLines *file, const char *line) {
     file->lines[file->count++] = strptr(line);
 }
 
-void addLines(ArmLines *file, const char **lines, unsigned int n) {
+void addLines(ArmLines *file, char **lines, unsigned int n) {
     for (int i = 0; i < n; i++) {
       addLine(file, lines[i]);
     }
