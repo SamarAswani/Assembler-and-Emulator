@@ -120,6 +120,63 @@ static SDTIAddressType getSDTIAddressType(char **operands, unsigned int opCount)
     return NUMERIC_CONST;
 }
 
+word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
+    SDTIAddressType addressType = getSDTIAddressType(instruction.operands, instruction.opCount );
+    word i = 0;
+    word p = (addressType == POST_IDX_EXP) ? 0 : (1 << SDTI_P_SHIFT);
+    word u = 1 << SDTI_U_SHIFT;
+    word l = (instruction.mnemonic == LDR) ? (1 << SDTI_L_SHIFT) : 0;
+    word* addresses = SDTIparser(instruction.operands[1]);
+    word rn = addresses[0] << SDTI_RN_SHIFT;
+    word rd = atoi(++instruction.operands[0]) << SDTI_RD_SHIFT;
+    word offset;
+
+    switch (addressType) {
+        case PRE_IDX:
+            offset = 0;
+            break;
+        case PRE_IDX_EXP:
+            u = addresses[2] << SDTI_U_SHIFT;
+            i = addresses[3] << SDTI_I_SHIFT;
+            offset = addresses[1];
+            break;
+        case POST_IDX_EXP:
+            i = (instruction.operands[2][0] == '#' || instruction.operands[2][0] == '=') ? 0 : 1 << SDTI_I_SHIFT;
+            offset = atoi((++instruction.operands[2]));
+            break;
+        case NUMERIC_CONST:
+            if (immediateVal(instruction.operands[1] + 1) <= SDTI_BOUND) {
+                free(addresses);
+                instruction.opcode = "mov";
+                instruction.mnemonic = MOV;
+                return assembleDPI(symbolTable, instruction);
+            } else {
+                offset = (get(symbolTable, instruction.operands[1])->value.address);
+                offset -= instruction.address;
+                offset = offset * 0x4;
+                offset -= ARM_OFFSET;
+                if (offset < 0) {
+                  offset = 0;
+                }
+                // rn = PC_REG << 16;
+                // p  = 0x01000000;
+                // l  = 0x00100000;
+                // return binInstr | l | p | rn | rd | offset | cond | u;
+
+
+
+                rn = PC << SDTI_RN_SHIFT;
+            }
+            break;
+        default:
+            printf("Error: Unexpected SDTI addressing method");
+            exit(0);
+    }
+    free(addresses);
+    return START | SDT | i | p | u | l | rn | rd | offset;
+}
+
+
 word assembleBranch(SymbolTable *symbolTable, Instruction instruction) {
     word cond;
     if (instruction.mnemonic == B) {
@@ -214,52 +271,6 @@ word assembleDPI(SymbolTable *symbolTable, Instruction instruction) {
     return START | i | opcode | s | rn | rd | operand2;
 }
 
-
-word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
-    SDTIAddressType addressType = getSDTIAddressType(instruction.operands, instruction.opCount );
-    word i = 0;
-    word p = (addressType == POST_IDX_EXP) ? 0 : (1 << SDTI_P_SHIFT);
-    word u = 1 << SDTI_U_SHIFT;
-    word l = (instruction.mnemonic == LDR) ? (1 << SDTI_L_SHIFT) : 0;
-    word* addresses = SDTIparser(instruction.operands[1]);
-    word rn = addresses[0] << SDTI_RN_SHIFT;
-    word rd = atoi(++instruction.operands[0]) << SDTI_RD_SHIFT;
-    word offset;
-
-    switch (addressType) {
-        case PRE_IDX:
-            offset = 0;
-            break;
-        case PRE_IDX_EXP:
-            u = addresses[2] << SDTI_U_SHIFT;
-            i = addresses[3] << SDTI_I_SHIFT;
-            offset = addresses[1];
-            break;
-        case POST_IDX_EXP:
-            i = (instruction.operands[2][0] == '#' || instruction.operands[2][0] == '=') ? 0 : 1 << SDTI_I_SHIFT;
-            offset = atoi((++instruction.operands[2]));
-            break;
-        case NUMERIC_CONST:
-            if (immediateVal(instruction.operands[1] + 1) <= SDTI_BOUND) {
-                free(addresses);
-                instruction.opcode = "mov";
-                instruction.mnemonic = MOV;
-                return assembleDPI(symbolTable, instruction);
-            } else {
-                offset = get(symbolTable, instruction.operands[1])->value.address - ARM_OFFSET;
-                offset -= instruction.address;
-                rn = PC << SDTI_RN_SHIFT;
-            }
-            break;
-        default:
-            printf("Error: Unexpected SDTI addressing method");
-            exit(0);
-    }
-    free(addresses);
-    return START | SDT | i | p | u | l | rn | rd | offset;
-}
-
-
 word assemble(SymbolTable *symbolTable, Instruction instruction) {
     Symbol *symbol = get(symbolTable, instruction.opcode);
     if (symbol == NULL) {
@@ -326,7 +337,7 @@ void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines) {
         if (!isLabel) {
             char *lineNoNewLine = strtok(line, "\n");
             if (lineNoNewLine != NULL) {
-                addLine(lines, lineNoNewLine); 
+                addLine(lines, lineNoNewLine);
             }
         }
     }
