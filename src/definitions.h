@@ -73,8 +73,8 @@ typedef enum OpcodeBranch {
 } OpcodeBranch;
 
 typedef enum OtherOpcode{ 
-    LSL_2,
-    ANDEQ 
+    LSL_2 = 14,
+    ANDEQ = 15
 } OtherOpcode;
 
 typedef enum InstructionType { 
