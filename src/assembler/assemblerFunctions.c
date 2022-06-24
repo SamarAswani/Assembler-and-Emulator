@@ -100,8 +100,8 @@ static word *SDTIparser(char* string) {
     char* secondToken = strtok(NULL, sep);
     if (secondToken != NULL) {
         addressRegExp[3] = token[0] == 'r' ? 1 : 0;
-        addressRegExp[2] = (++token)[0] == '-' ? 0 : 1;
-        addressRegExp[1] = immediateVal(secondToken + 1);
+        addressRegExp[2] = (++secondToken)[0] == '-' ? 0 : 1;
+        addressRegExp[1] = immediateVal(secondToken);
     }
     free(stringTemp);
     return addressRegExp;
