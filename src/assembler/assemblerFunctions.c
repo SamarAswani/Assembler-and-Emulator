@@ -27,6 +27,14 @@ unsigned int immediateVal(char *operand) {
     return (unsigned int) atoi(operand);
 }
 
+uint32_t evalExpression(char* expr) {
+  if (expr[0] == '0' && expr[1] == 'x') {
+    return strtoul(&expr[2], NULL, 16);
+  } else {
+    return atoi(expr);
+  }
+}
+
 static word rotateLeft(word imm, unsigned int rotate) {
     unsigned int msbs = imm & ~((1 << (WORD_SIZE - rotate)) - 1);
     return (imm << rotate) | (msbs >> (WORD_SIZE - rotate));
@@ -102,7 +110,7 @@ static word *SDTIparser(char* string) {
     if (secondToken != NULL) {
         addressRegExp[3] = token[0] == 'r' ? 1 : 0;
         addressRegExp[2] = (++token)[0] == '-' ? 0 : 1;
-        addressRegExp[1] = immediateVal(secondToken);
+        addressRegExp[1] = evalExpression(secondToken);
     }
     free(stringTemp);
     return addressRegExp;
