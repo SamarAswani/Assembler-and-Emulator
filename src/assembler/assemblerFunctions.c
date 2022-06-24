@@ -16,7 +16,7 @@ int lookup(const tableStruct table[], const char *key, const int size) {
 }
 
 unsigned int immediateVal(char *operand) {
-    if (operand[0] == '-') {
+  if (operand[0] == '-') {
       ++operand;
     }
     if (strlen(operand) >= 3) {
@@ -214,6 +214,7 @@ word assembleDPI(SymbolTable *symbolTable, Instruction instruction) {
     return START | i | opcode | s | rn | rd | operand2;
 }
 
+
 word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
     SDTIAddressType addressType = getSDTIAddressType(instruction.operands, instruction.opCount );
     word i = 0;
@@ -231,8 +232,11 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
             break;
         case PRE_IDX_EXP:
             u = addresses[2] << SDTI_U_SHIFT;
+            i = addresses[3] << SDTI_I_SHIFT;
             offset = addresses[1];
+            break;
         case POST_IDX_EXP:
+            i = (instruction.operands[2][0] == '#' || instruction.operands[2][0] == '=') ? 0 : 1 << SDTI_I_SHIFT;
             offset = atoi((++instruction.operands[2]));
             break;
         case NUMERIC_CONST:
@@ -249,7 +253,7 @@ word assembleSDTI(SymbolTable *symbolTable, Instruction instruction) {
             break;
         default:
             printf("Error: Unexpected SDTI addressing method");
-            exit(7);
+            exit(0);
     }
     free(addresses);
     return START | SDT | i | p | u | l | rn | rd | offset;
