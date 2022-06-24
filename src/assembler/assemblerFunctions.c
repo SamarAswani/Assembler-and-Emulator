@@ -347,6 +347,9 @@ void firstPass(FILE *assemblyFile, SymbolTable *table, ArmLines *lines) {
         Symbol *expression = createLabelSymbol(expressions->lines[i], address);
         add(table, expression);
     }
+
+    addLines(lines, expressions->lines, expressions->count);
+    freeLines(expressions);
 }
 
 void secondPassLines(ArmLines *file, SymbolTable *symbolTable, FILE *out) {
