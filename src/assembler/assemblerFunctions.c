@@ -93,6 +93,7 @@ static word *SDTIparser(char* string) {
     char *sep = ", ";
     char *stringTemp = strptr(string + 1);
     char *token = strtok(stringTemp, sep);
+    char *token2 = strtok(NULL, sep);
     if (token[0] == 'r') {
         (++token);
     }
